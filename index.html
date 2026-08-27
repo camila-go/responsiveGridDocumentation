@@ -176,11 +176,14 @@
   }
   .cta__copy { font-size: 16px; line-height: 1.5; margin: 0; }
   .cta__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  /* min-height rather than height, and no nowrap, so a button placed in a
+     genuinely narrow slot wraps its label instead of overflowing the card.
+     max-width keeps it inside the container either way. */
   .cta__btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    height: 60px; padding: 0 28px; border-radius: 32px;
+    display: inline-flex; align-items: center; justify-content: center; text-align: center;
+    min-height: 60px; padding: 12px 28px; border-radius: 32px; max-width: 100%;
     font: 700 20px/1.5 Inter, system-ui, sans-serif; text-decoration: none;
-    background: #fff; color: #212322; border: 2px solid #fff; white-space: nowrap;
+    background: #fff; color: #212322; border: 2px solid #fff;
   }
   /* On the light stacked panel the outlined button needs an ink border to keep
      a 3:1 boundary; over the photo it reverts to the design's white. */
@@ -418,8 +421,10 @@
 
     <div class="l-max" style="margin-top:16px" id="slot-max"></div>
     <div class="l-min" style="margin-top:16px" id="slot-min"></div>
+    <!-- No .flex-grid--keep here: below 960px this collapses to one column, so
+         the three CTAs stack instead of squeezing into ~98px cells. -->
     <div class="l-max" style="margin-top:16px">
-      <div class="flex-grid cols-3 flex-grid--keep" id="slot-grid"></div>
+      <div class="flex-grid cols-3" id="slot-grid"></div>
     </div>
   </section>
 

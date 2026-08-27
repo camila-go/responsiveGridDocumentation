@@ -38,12 +38,12 @@ from Responsive layout 2.0. It is committed to this repo.
 | CTA component | Rebuilt from node 1:180; 1920 frame produces a 1440 × 500 CTA, matching the artboard |
 | Container-query tiers | Built; **tier breakpoints are mine, not spec'd** — see Assumptions |
 | Contrast | Measured by compositing the scrim over real image pixels; one genuine failure found and fixed |
+| Mobile / reflow | Verified at 320 and 375: no page-level horizontal scroll, grids collapse to one column, CTA stacks. Wide content (the reference table) scrolls inside its own wrapper |
 | Screen reader testing | **Not done.** Reasoned about the a11y tree; never ran VoiceOver or NVDA |
 | Cross-browser | **Not done.** Only exercised in the preview pane's Chromium |
 | Real device testing | **Not done.** All responsive checks were emulated viewports |
 
-Nothing is uncommitted. Everything described here is on `origin/main` at
-`509f4a8`.
+Nothing is uncommitted. Everything described here is on `origin/main`.
 
 ---
 
@@ -179,15 +179,23 @@ Things that already caused a bug once, or will.
    content-driven wrapping, and pair it with `.flex-grid--even` so the last row
    doesn't stretch.
 
-3. **`.cta__img` must stay `position: absolute` in the overlay tier.** In flow,
+3. **`.flex-grid--keep` makes a grid non-responsive. That is its whole job.**
+   It opts out of the single-column collapse below 960px, so the columns stay
+   put no matter how narrow the page gets. On the demo page's three-slot grid
+   that produced **98px cells at 375px** — three CTAs crushed side by side.
+   Only use `--keep` on grids of genuinely small items (chips, thumbnails,
+   stat tiles), and pair it with `--item-min` so they still wrap. Never on
+   cards or anything with a button in it.
+
+4. **`.cta__img` must stay `position: absolute` in the overlay tier.** In flow,
    the photograph's intrinsic aspect drives the grid row height and a 1440-wide
    CTA renders ~806px tall instead of 500.
 
-4. **`object-position` X does nothing when the box is wider than the image's
+5. **`object-position` X does nothing when the box is wider than the image's
    aspect ratio.** `cover` crops only on the constrained axis. That's why the
    subject is placed with a transform, not `object-position`.
 
-5. **Percentage widths can go negative** below ~64px page width. Guarded with
+6. **Percentage widths can go negative** below ~64px page width. Guarded with
    `max(0px, …)` in CSS and `Math.max(0, …)` in the readout. Not reachable in a
    real browser, but it surfaced when the preview pane reported a 0px viewport.
 
