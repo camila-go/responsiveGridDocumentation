@@ -10,6 +10,11 @@ No dependencies: [`grid.css`](grid.css) is the system, [`index.html`](index.html
 spec page, [`cta.jpg`](cta.jpg) is the CTA photograph exported from Figma
 (downsized from the 4096px original to 1920px / 445K).
 
+> **Picking this up cold?** Start with [`HANDOFF.md`](HANDOFF.md) — status,
+> what's verified and what isn't, the decisions that departed from the Figma
+> files, and the gotchas. It also flags a licensing question about `cta.jpg`
+> that needs answering before this repo goes anywhere public.
+
 ## The rule
 
 | | |
