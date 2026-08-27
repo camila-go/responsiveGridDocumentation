@@ -1,0 +1,248 @@
+/* ==========================================================================
+   Responsive Grid
+   --------------------------------------------------------------------------
+   Source of truth (Figma file names as they appear in Figma):
+     - Capstone Design System 0.9.1 — "Grid" (node 2986:266)
+     - Responsive layout 2.0 — Page 1 (node 0:1)
+
+   The two files agree on one rule set:
+
+     single breakpoint          960px  (<=960 mobile, >=961 desktop)
+     mobile padding             16px   (fixed)
+     desktop padding            32px   (fixed)
+     max pattern width          1440px (variable — caps, never a floor)
+     min pattern width          1170px (variable)
+     total default desktop      1504px (1440 + 2 x 32)
+     max supported width        1920px
+
+   Between the breakpoint and the cap nothing steps — the pattern widths scale
+   with the browser ("Scales w/o breakpoint RELATIVE TO BROWSER WIDTH"). The
+   quoted numbers are just that scale evaluated at 1920px:
+
+     pattern-max = min(page - 2 x padding, 1440)
+     pattern-min = pattern-max x 0.8125          (1170 / 1440 = 0.8125)
+
+   That single pair reproduces every measured rectangle in both files:
+
+     page   pad   pattern-max        pattern-min
+     1920    32   1440 (capped)      1170
+     1504    32   1440               1170
+     1024    32    960                780   <- Figma "padding DT 1027"
+      961    32    897                729
+      960    16    928                754   <- Figma "padding M 960"
+      753    16    721                585
+      375    16    343                279   <- Figma "padding M 375"
+   ========================================================================== */
+
+:root {
+  /* --- Fixed rails, straight from the design files --------------------- */
+  --grid-max-supported: 1920px;   /* page stops growing here */
+  --grid-pattern-max: 1440px;     /* "Max Pattern Width"  */
+  --grid-pattern-min: 1170px;     /* "Min Pattern Width"  */
+  --grid-pattern-ratio: 0.8125;   /* 1170 / 1440          */
+
+  /* --- Padding (fixed per side of the breakpoint) ---------------------- */
+  --grid-pad-mobile: 16px;
+  --grid-pad-desktop: 32px;
+  --grid-pad: var(--grid-pad-mobile);
+
+  /* --- Not specified in Figma. Assumed; override freely. ---------------
+     The design system defines a base unit of 8px, so the gutter is 3 units.
+     The "Flex Grid" pages carry no column count or gutter measurement. */
+  --grid-gutter: 24px;
+}
+
+/* The single breakpoint. Desktop starts at 961: the 960px artboard in both
+   files is drawn with the 16px mobile padding, so 960 is the last mobile
+   width. (The spec table's "Desktop 960-1920" row is off by one against the
+   artboards; the artboards win.) */
+@media (min-width: 961px) {
+  :root {
+    --grid-pad: var(--grid-pad-desktop);
+  }
+}
+
+/* ==========================================================================
+   Page shell
+   Every layout width below is a percentage of its containing block, so the
+   band it sits in has to be the full page width. Put bands directly inside
+   .grid-page, and content directly inside a band.
+   ========================================================================== */
+
+.grid-page {
+  width: 100%;
+  max-width: var(--grid-max-supported);
+  margin-inline: auto;
+}
+
+/* A full-bleed horizontal band — backgrounds, full-width media. */
+.grid-band {
+  width: 100%;
+}
+
+/* ==========================================================================
+   Content widths
+   Drop one of these on the content inside a band.
+   ========================================================================== */
+
+/* Full width content — edge to edge, no padding. */
+.l-full {
+  width: 100%;
+  margin-inline: auto;
+}
+
+/* Total default desktop width (1504 at >=1504px): the padded shell. Use for
+   page chrome — header, footer, nav — that should align to the outer rail
+   rather than to a pattern. Derived, so it tracks --grid-pad-desktop. */
+.l-container {
+  width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad)));
+  margin-inline: auto;
+  padding-inline: var(--grid-pad);
+}
+
+/* Max pattern width — the default content width. 1440 at >=1504px.
+   max(0px, ...) so a page narrower than the padding can't compute negative. */
+.l-max {
+  width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
+  margin-inline: auto;
+}
+
+/* Min pattern width — the narrow content width. 1170 at >=1504px, and 81.25%
+   of the max pattern at every width below that. */
+.l-min {
+  width: max(0px, min(
+    (100% - 2 * var(--grid-pad)) * var(--grid-pattern-ratio),
+    var(--grid-pattern-min)
+  ));
+  margin-inline: auto;
+}
+
+/* ==========================================================================
+   Flex grid
+   "The flex grid allows elements to fluidly alter their width or height to
+   fill the available space. As the width of the viewport changes, the content
+   dynamically adjusts to the new width."
+
+   Columns are nominal, not structural. --cols sets how many items sit on a
+   row; there is no fixed track, so items keep filling the row after a wrap.
+
+   --item-min defaults to 0, which means --cols is honoured exactly and the
+   only column change in the whole system is the 960px breakpoint — matching
+   the design files, which show no intermediate column steps. Set --item-min
+   to opt into content-driven wrapping (e.g. cards that must not go below
+   260px); pair it with .flex-grid--even if you don't want the last row's
+   leftover items stretching to fill.
+   ========================================================================== */
+
+.flex-grid {
+  --cols: 3;
+  --item-min: 0px;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--grid-gutter);
+}
+
+.flex-grid > * {
+  flex: 1 1 calc((100% - (var(--cols) - 1) * var(--grid-gutter)) / var(--cols));
+  /* min() so a single item narrower than --item-min never overflows its row. */
+  min-width: min(100%, var(--item-min));
+}
+
+/* Items hold their nominal column width instead of growing. A wrapped last
+   row then sits left-aligned rather than stretching to fill. */
+.flex-grid--even > * {
+  flex-grow: 0;
+}
+
+/* Let an item claim several nominal columns. Set --span on the child. */
+.flex-grid > [class*="span-"],
+.flex-grid > .span {
+  --span: 1;
+  flex-basis: calc(
+    ((100% - (var(--cols) - 1) * var(--grid-gutter)) / var(--cols)) * var(--span)
+    + var(--grid-gutter) * (var(--span) - 1)
+  );
+  flex-grow: var(--span);
+}
+
+.flex-grid > .span-1 { --span: 1; }
+.flex-grid > .span-2 { --span: 2; }
+.flex-grid > .span-3 { --span: 3; }
+.flex-grid > .span-4 { --span: 4; }
+.flex-grid > .span-6 { --span: 6; }
+
+.flex-grid.cols-1 { --cols: 1; }
+.flex-grid.cols-2 { --cols: 2; }
+.flex-grid.cols-3 { --cols: 3; }
+.flex-grid.cols-4 { --cols: 4; }
+.flex-grid.cols-6 { --cols: 6; }
+.flex-grid.cols-12 { --cols: 12; }
+
+/* Below the breakpoint everything collapses to a single fluid column unless a
+   grid opts out with .flex-grid--keep. */
+@media (max-width: 960px) {
+  .flex-grid:not(.flex-grid--keep) {
+    --cols: 1;
+  }
+  .flex-grid:not(.flex-grid--keep) > * {
+    --span: 1;
+    flex-basis: 100%;
+  }
+}
+
+/* ==========================================================================
+   Grid overlay — the diagram from the Figma files, live.
+   Add .grid-overlay to .grid-page (or toggle it) to see the rails.
+
+   Colours are the Figma rail fills, straight off the "Grid" page:
+     outside the container   #000000
+     desktop / mobile padding  #ffe0ae
+     max pattern width       #aef3ff
+     min pattern width       #edaeff
+   ========================================================================== */
+
+:root {
+  --grid-rail-outside: #000000;
+  --grid-rail-padding: #ffe0ae;
+  --grid-rail-max: #aef3ff;
+  --grid-rail-min: #edaeff;
+  --grid-rail-alpha: 42%;
+}
+
+.grid-overlay {
+  position: relative;
+}
+
+.grid-overlay::before,
+.grid-overlay::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  translate: -50% 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Total default desktop width, filled with the padding colour. Outside it the
+   page shows through, which is the black band in the Figma diagram. */
+.grid-overlay::before {
+  width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad)));
+  background: color-mix(in srgb, var(--grid-rail-padding) var(--grid-rail-alpha), transparent);
+}
+
+/* Max pattern width, with the min pattern width drawn inside it as a gradient
+   stop so both rails come out of a single pseudo-element. */
+.grid-overlay::after {
+  width: min(100% - 2 * var(--grid-pad), var(--grid-pattern-max));
+  --_min-inset: calc((100% - 100% * var(--grid-pattern-ratio)) / 2);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent) 0 var(--_min-inset),
+    color-mix(in srgb, var(--grid-rail-min) var(--grid-rail-alpha), transparent) var(--_min-inset)
+      calc(100% - var(--_min-inset)),
+    color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent)
+      calc(100% - var(--_min-inset)) 100%
+  );
+}

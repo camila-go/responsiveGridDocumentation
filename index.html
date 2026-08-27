@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Documentation</title>
+<link rel="stylesheet" href="grid.css">
+<style>
+  :root {
+    /* Tokens as named in the source Figma files */
+    --ink: #253746;          /* color/careerblue/careerblue-500 */
+    --ink-soft: #383838;     /* global/color/gl-neutral-600 — the annotation grey */
+    --ink-faint: #a8afb5;    /* color/careerblue/careerblue-200 */
+    --line: #d9d9d6;         /* Primary/University Grey */
+    --bg: #ffffff;           /* color/usability/neutral/gl-neutral-0 */
+
+    /* Placeholder swatch, from the Grid page's image_component */
+    --swatch: #e0e0e0;
+    --swatch-line: #c2c2c2;
+    --swatch-radius: 20px;
+
+    /* Rail fills, straight off the Figma "Grid" page */
+    --rail-outside: #000000;
+    --rail-padding: #ffe0ae;
+    --rail-max: #aef3ff;
+    --rail-min: #edaeff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 400 16px/1.5 Inter, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { margin: 0; font-weight: 500; letter-spacing: -0.01em; }
+  h1 { font-size: 42px; line-height: 1.1; }
+  h2 { font-size: 28px; line-height: 1.2; }
+  h3 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); font-weight: 600; }
+  /* Was an <h3> above the <h1> — looked like a kicker, but it broke heading
+     order for anyone navigating by headings. It is a paragraph now. */
+  .eyebrow { font-size: 15px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-soft); font-weight: 600; }
+  p  { margin: 0; max-width: 68ch; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; background: var(--swatch); padding: 1px 5px; border-radius: 4px; }
+
+  /* ---- live readout bar ---- */
+  .hud {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
+    padding: 10px 16px;
+    background: var(--ink); color: #fff;
+    font: 500 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .hud b { font-weight: 700; color: var(--rail-max); }
+  .hud .mode {
+    padding: 3px 8px; border-radius: 999px; font-weight: 700;
+    background: var(--rail-max); color: var(--ink);
+  }
+  .hud button {
+    margin-left: auto; font: inherit; cursor: pointer;
+    background: transparent; color: #fff; border: 1px solid #93a2ae;
+    padding: 5px 12px; border-radius: 999px;
+  }
+
+  /* A two-tone ring so focus stays visible on white, on the dark HUD, and on
+     the photograph — no single colour clears 3:1 against all three. */
+  :where(a, button):focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 6px var(--ink);
+  }
+  .hud button[aria-pressed="true"] { background: #fff; color: var(--ink); border-color: #fff; }
+
+  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  .stack { display: flex; flex-direction: column; gap: 20px; }
+
+  /* ---- rail diagram ----
+     Nested rails, coloured exactly as the Figma "Grid" page draws them: black
+     outside the container, peach padding, cyan max pattern, lavender min. */
+  .diagram { position: relative; height: 260px; background: var(--rail-outside); }
+  .diagram .rail {
+    position: absolute; inset-block: 0; left: 50%; translate: -50% 0;
+    display: flex; align-items: flex-start; justify-content: flex-start;
+    padding: 8px;
+    font: 600 12px/1 ui-monospace, Menlo, monospace; color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  /* Labels ride in their own transparent copy of each rail so a narrower rail
+     painted on top can't cover the wider rail's text. */
+  .diagram .tag {
+    background: none; outline: 0; z-index: 5; pointer-events: none;
+    inset-block: auto; top: var(--y); height: auto;
+  }
+  /* Each label is a solid chip rather than bare text on the rail. A label is
+     wider than its own rail at most viewports, so it always ends up crossing
+     into a neighbouring band — bare text can't hold a contrast ratio against
+     four different fills. The chip fixes the pairing at ink-on-white (13.6:1)
+     and a colour dot carries the rail identity instead of the text colour. */
+  .diagram .chip {
+    display: inline-block; padding: 4px 8px; border-radius: 4px;
+    background: #fff; color: var(--ink);
+    font: 700 12px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .diagram .chip em { font-style: normal; font-weight: 400; color: var(--ink-soft); }
+  .diagram .dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    margin-right: 6px; vertical-align: baseline;
+    border: 1px solid rgb(0 0 0 / 0.25);
+  }
+  /* Drop the long description before the chip outgrows a narrow page. */
+  @media (max-width: 760px) { .diagram .chip .desc { display: none; } }
+  .rail-container { width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad))); background: var(--rail-padding); }
+  .rail-max { width: min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)); background: var(--rail-max); }
+  .rail-min {
+    width: min((100% - 2 * var(--grid-pad)) * var(--grid-pattern-ratio), var(--grid-pattern-min));
+    background: var(--rail-min);
+  }
+  .diagram .label-page { position: absolute; top: 8px; left: 8px; z-index: 5; }
+
+  /* ---- demo blocks ---- */
+  .demo { background: var(--swatch); border: 1px solid var(--swatch-line); border-radius: var(--swatch-radius); padding: 16px; }
+  .card {
+    background: #fff; border: 1px solid var(--swatch-line); border-radius: 10px;
+    padding: 18px; min-height: 92px;
+    display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
+  }
+  .card span { font: 600 12px/1 ui-monospace, Menlo, monospace; color: var(--ink-soft); }
+  .card b { font-weight: 600; font-size: 15px; }
+  .card--accent { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .card--accent span { color: #9fd4cd; }
+
+  /* ---- CTA component ----
+     Modelled on the CTA pattern drawn across every width in Responsive layout
+     2.0. It sizes off its OWN width via container queries, not the viewport —
+     so the same markup is correct at .l-max, at .l-min, and inside a
+     three-column flex grid, with no extra classes. */
+  .cta { container-type: inline-size; }
+
+  .cta__inner {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+    background: var(--swatch);
+  }
+  /* Stacked tier crops portrait, keeping the subject; the overlay tier crops
+     wide and sits her left of the copy, as the desktop artboards do. (Figma
+     does this with an explicit -38.07%/-71.54% at 138.87%/298.54% crop, which
+     is tied to the 1920x500 frame and doesn't survive other aspect ratios.) */
+  .cta__media { position: relative; overflow: hidden; aspect-ratio: 4 / 5; }
+  .cta__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+  /* The scrim from the Figma CTA, translated literally: a radial gradient from
+     rgba(0,0,0,0.6) to transparent, centred at (960, 328) of the 1920x500
+     frame with radii ~704 x ~727. As percentages that is 36.7% x 145% at
+     50% 65.6%. It is what makes white text legible over the photograph. */
+  .cta__scrim {
+    display: none; /* only needed where text sits on the image */
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 36.7% 145% at 50% 65.6%,
+        rgb(0 0 0 / 0.6) 0%, rgb(0 0 0 / 0) 100%),
+      /* Flat floor, added on top of the Figma gradient. The radial alone was
+         authored against one 1920x500 crop; at other widths the text block
+         drifts over her raised hand, where the gradient has already fallen to
+         ~0.37 and white 16px copy measures 3.99:1 — under the 4.5:1 needed for
+         normal text. 0.18 everywhere lifts the worst case to 5.6:1 while the
+         radial still does the visible work. */
+      linear-gradient(rgb(0 0 0 / 0.18), rgb(0 0 0 / 0.18));
+  }
+  .cta__content {
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+    gap: 16px; padding: 24px 16px; color: var(--ink);
+  }
+  .cta__title {
+    font-family: 'acumin-pro-extra-condensed', 'Archivo Narrow', 'Arial Narrow', Inter, sans-serif;
+    font-weight: 600; font-size: 34px; line-height: 0.9; letter-spacing: -0.01em;
+    text-transform: uppercase; margin: 0;
+  }
+  .cta__copy { font-size: 16px; line-height: 1.5; margin: 0; }
+  .cta__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .cta__btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 60px; padding: 0 28px; border-radius: 32px;
+    font: 700 20px/1.5 Inter, system-ui, sans-serif; text-decoration: none;
+    background: #fff; color: #212322; border: 2px solid #fff; white-space: nowrap;
+  }
+  /* On the light stacked panel the outlined button needs an ink border to keep
+     a 3:1 boundary; over the photo it reverts to the design's white. */
+  .cta__btn--ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .cta__tier { font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--ink-soft); padding-top: 8px; }
+  .cta__tier::after { content: "stacked — image over light panel"; }
+
+  /* Overlay tier. Wide enough to sit the copy on top of the photograph, which
+     is the arrangement every desktop artboard in Responsive layout 2.0 uses. */
+  @container (min-width: 480px) {
+    .cta__inner { display: grid; background: none; }
+    .cta__media, .cta__content { grid-area: 1 / 1; }
+    /* Absolute so the photograph's intrinsic aspect can't set the row height —
+       otherwise a 1440-wide CTA renders ~806px tall instead of the spec's 500. */
+    .cta__media { height: 100%; aspect-ratio: auto; }
+    .cta__img { position: absolute; inset: 0; }
+    /* The CTA is wider than the photograph's aspect, so `cover` crops only
+       vertically and object-position X does nothing. Figma gets the subject
+       left of the copy by zooming to 138.87% and offsetting; scale + translate
+       is the same move, and unlike Figma's frame-specific percentages it holds
+       at any width. */
+    .cta__img { transform: scale(1.45) translateX(-15%); }
+    .cta__scrim { display: block; }
+    /* Figma's text column is 346px because Acumin Extra Condensed sets
+       "YOUR TIME IS NOW" at 48px in ~239px. The fallback condensed faces are
+       wider, so the column gets more room to keep the headline on one line. */
+    .cta__content {
+      position: relative; justify-content: center;
+      color: #fff; padding: 32px 24px; max-width: 468px; margin-inline: auto;
+    }
+    .cta__btn--ghost { color: #fff; border-color: #fff; }
+    .cta__actions { flex-direction: row; }
+    .cta__inner { min-height: 380px; }
+    .cta__tier::after { content: "overlay — text on image, inline actions"; }
+  }
+  @container (min-width: 860px) {
+    .cta__inner { min-height: 440px; }
+    .cta__title { font-size: 48px; }
+    .cta__tier::after { content: "overlay — full display scale"; }
+  }
+  @container (min-width: 1200px) {
+    .cta__inner { min-height: 500px; }
+    .cta__tier::after { content: "overlay — full display scale, 500px"; }
+  }
+
+  /* ---- viewport scopes ----
+     The same component rendered at real target widths and scaled down to fit,
+     so several viewports are legible at once. */
+  .scope { margin-top: 24px; }
+  .scope__head {
+    display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+    font: 600 12px/1 ui-monospace, Menlo, monospace; color: var(--ink);
+    padding-bottom: 8px; border-bottom: 1px solid var(--line); margin-bottom: 12px;
+  }
+  .scope__head em { font-style: normal; color: var(--ink-soft); opacity: 0.8; }
+  .scope__head .pill {
+    padding: 3px 8px; border-radius: 999px; background: var(--rail-max);
+    color: var(--ink); font-weight: 700;
+  }
+  /* Lighter than --swatch so the component's media block reads against it. */
+  .scope__view { overflow: hidden; background: color-mix(in srgb, var(--line) 38%, #fff); border-radius: 8px; }
+  /* The scaled previews are pictures of the component, not the component. Their
+     text is rendered at up to half size and their links duplicate the full-size
+     copies further down, so keyboard and screen reader users would tab through
+     six unreachable-looking buttons to get to the real ones. inert removes them
+     from both the tab order and the accessibility tree. */
+  .scope__view[inert] { cursor: default; }
+  .scope__page { transform: scale(var(--s, 1)); transform-origin: top left; padding: 20px 0; }
+
+  /* Keeps the page itself from scrolling sideways at 320px (WCAG 1.4.10). */
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; font-size: 14px; }
+  caption { text-align: left; padding-bottom: 8px; color: var(--ink-soft); font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 8px 14px; text-align: left; }
+  th { background: var(--bg-soft); font-weight: 600; }
+  td:first-child { font-weight: 500; }
+  .note { font-size: 14px; color: var(--ink-soft); }
+  .note strong { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <span>viewport <b id="hud-vw">–</b></span>
+  <span class="mode" id="hud-mode">–</span>
+  <span>padding <b id="hud-pad">–</b></span>
+  <span>pattern-max <b id="hud-max">–</b></span>
+  <span>pattern-min <b id="hud-min">–</b></span>
+  <button id="grid-toggle" aria-pressed="false">Grid overlay</button>
+</div>
+
+<div class="grid-page" id="page">
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band">
+    <div class="l-max stack">
+      <p class="eyebrow">Responsive document</p>
+      <h1>Grid Documentation</h1>
+      <p>One breakpoint at 960px, fixed padding either side of it (32 desktop, 16 mobile), and two
+        pattern widths that scale with the browser until they cap. Resize the window — the readout
+        above is live.</p>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band">
+    <div class="l-max stack" style="margin-bottom:20px">
+      <h2>The rails</h2>
+      <p>Outer band is the page (capped at max supported width). Then the total default desktop width,
+        the max pattern width, and the min pattern width nested inside it.</p>
+    </div>
+    <div class="diagram" id="diagram">
+      <div class="rail rail-container" aria-hidden="true"></div>
+      <div class="rail rail-max" aria-hidden="true"></div>
+      <div class="rail rail-min" aria-hidden="true"></div>
+
+      <div class="label-page">
+        <span class="chip"><i class="dot" style="background:var(--rail-outside)"></i>page <em class="desc">max supported 1920</em> <em data-w></em></span>
+      </div>
+      <div class="rail rail-container tag" style="--y:46px">
+        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em class="desc">total default desktop width</em> <em data-w></em></span>
+      </div>
+      <div class="rail rail-max tag" style="--y:84px">
+        <span class="chip"><i class="dot" style="background:var(--rail-max)"></i>.l-max <em class="desc">max pattern width</em> <em data-w></em></span>
+      </div>
+      <div class="rail rail-min tag" style="--y:122px">
+        <span class="chip"><i class="dot" style="background:var(--rail-min)"></i>.l-min <em class="desc">min pattern width</em> <em data-w></em></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band">
+    <div class="l-max stack">
+      <h2>Content widths</h2>
+      <p>Three classes, applied to content sitting directly inside a full-width band.</p>
+    </div>
+
+    <div class="l-full demo" style="margin-top:20px;border-radius:0;border-inline:0">
+      <div class="card card--accent"><b>.l-full</b><span>full width content — edge to edge, no padding</span></div>
+    </div>
+
+    <div class="l-max demo" style="margin-top:12px">
+      <div class="card"><b>.l-max</b><span>max pattern width — the default content width</span></div>
+    </div>
+
+    <div class="l-min demo" style="margin-top:12px">
+      <div class="card"><b>.l-min</b><span>min pattern width — 81.25% of the max pattern</span></div>
+    </div>
+
+    <div class="l-container demo" style="margin-top:12px">
+      <div class="card"><b>.l-container</b><span>total default desktop width — padded shell for page chrome</span></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band">
+    <div class="l-max stack" style="margin-bottom:20px">
+      <h2>Flex grid</h2>
+      <p>Columns are nominal, not structural. <code>--cols</code> sets how many items sit on a row at full
+        width; <code>--item-min</code> sets where they wrap. After a wrap the remaining items keep filling
+        the row rather than leaving a hole.</p>
+    </div>
+
+    <div class="l-max stack">
+      <div class="flex-grid cols-3">
+        <div class="card"><b>1 / 3</b><span>--cols: 3</span></div>
+        <div class="card"><b>2 / 3</b><span>--cols: 3</span></div>
+        <div class="card"><b>3 / 3</b><span>--cols: 3</span></div>
+      </div>
+
+      <div class="flex-grid cols-4">
+        <div class="card"><b>1</b><span>--cols: 4</span></div>
+        <div class="card"><b>2</b><span>--cols: 4</span></div>
+        <div class="card"><b>3</b><span>--cols: 4</span></div>
+        <div class="card"><b>4</b><span>--cols: 4</span></div>
+      </div>
+
+      <div class="flex-grid cols-4">
+        <div class="card span-2 card--accent"><b>.span-2</b><span>spans two nominal columns + the gutter</span></div>
+        <div class="card"><b>1</b><span>--cols: 4</span></div>
+        <div class="card"><b>1</b><span>--cols: 4</span></div>
+      </div>
+
+      <div class="flex-grid cols-3 flex-grid--keep" style="--item-min:140px">
+        <div class="card"><b>keep</b><span>--item-min: 140px</span></div>
+        <div class="card"><b>keep</b><span>stays multi-column on mobile</span></div>
+        <div class="card"><b>keep</b><span>.flex-grid--keep</span></div>
+      </div>
+
+      <div class="flex-grid cols-4 flex-grid--even" style="--item-min:260px">
+        <div class="card"><b>1</b><span>--item-min: 260px</span></div>
+        <div class="card"><b>2</b><span>wraps below 260px per item</span></div>
+        <div class="card"><b>3</b><span>.flex-grid--even</span></div>
+        <div class="card"><b>4</b><span>last row doesn&rsquo;t stretch</span></div>
+        <div class="card"><b>5</b><span>.flex-grid--even</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band">
+    <div class="l-max stack" style="margin-bottom:8px">
+      <h2>How a component responds</h2>
+      <p>The CTA below is one block of markup with no viewport media queries. It sizes off
+        <em>its own</em> width using container queries, so it is correct at <code>.l-max</code>, at
+        <code>.l-min</code>, and inside a three-column grid — the grid decides how much room it gets,
+        the component decides what to do with it.</p>
+      <p class="note">Each frame is a real page at that width, scaled down to fit. The tier label under
+        each one reports which container query is active.</p>
+    </div>
+
+    <div class="l-max">
+      <div class="scope" data-w="1920" data-pad="32">
+        <div class="scope__head"><span class="pill">1920</span> desktop <em data-scope-note></em></div>
+        <div class="scope__view"><div class="scope__page"></div></div>
+      </div>
+
+      <div class="scope" data-w="1024" data-pad="32">
+        <div class="scope__head"><span class="pill">1024</span> desktop <em data-scope-note></em></div>
+        <div class="scope__view"><div class="scope__page"></div></div>
+      </div>
+
+      <div class="scope" data-w="375" data-pad="16">
+        <div class="scope__head"><span class="pill">375</span> mobile <em data-scope-note></em></div>
+        <div class="scope__view"><div class="scope__page"></div></div>
+      </div>
+    </div>
+
+    <div class="l-max stack" style="margin-top:36px">
+      <h3>Same component, three slots, one viewport</h3>
+      <p class="note">Nothing below changes viewport. Only the width of the slot changes, and the
+        component re-tiers on its own.</p>
+    </div>
+
+    <div class="l-max" style="margin-top:16px" id="slot-max"></div>
+    <div class="l-min" style="margin-top:16px" id="slot-min"></div>
+    <div class="l-max" style="margin-top:16px">
+      <div class="flex-grid cols-3 flex-grid--keep" id="slot-grid"></div>
+    </div>
+  </section>
+
+  <!-- ---------------------------------------------------------------- -->
+  <section class="grid-band" style="border-bottom:0">
+    <div class="l-max stack">
+      <h2>Reference</h2>
+      <div class="table-wrap">
+      <table>
+        <caption>Computed widths at each measured breakpoint, in px.</caption>
+        <thead><tr><th scope="col">Browser width</th><th scope="col">Padding</th><th scope="col">Container</th><th scope="col">pattern-max</th><th scope="col">pattern-min</th></tr></thead>
+        <tbody>
+          <tr><td>1920</td><td>32</td><td>1504</td><td>1440</td><td>1170</td></tr>
+          <tr><td>1504</td><td>32</td><td>1504</td><td>1440</td><td>1170</td></tr>
+          <tr><td>1024</td><td>32</td><td>1024</td><td>960</td><td>780</td></tr>
+          <tr><td>961</td><td>32</td><td>961</td><td>897</td><td>729</td></tr>
+          <tr><td>960</td><td>16</td><td>960</td><td>928</td><td>754</td></tr>
+          <tr><td>375</td><td>16</td><td>375</td><td>343</td><td>279</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="note"><strong>Padding is 32px on desktop, 16px on mobile.</strong> That makes the
+        <code>padding DT 1027</code> study in the Grid page the authoritative one — it draws 1024 &rarr;
+        960 / 780, which is exactly what the formula produces. The <code>padding DT 1024</code> frame
+        next to it (80px) is the superseded option.</p>
+      <p class="note"><strong>Total default desktop width is now 1504</strong>, not the 1600 written on
+        the Grid page — 1600 was 1440&nbsp;+&nbsp;2&times;80. It is derived from
+        <code>--grid-pad-desktop</code>, so it tracks the token rather than being hardcoded.</p>
+      <p class="note"><strong>Not in the design files:</strong> column count and gutter. The gutter
+        defaults to 24px (3&times; the system&rsquo;s 8px base unit) via <code>--grid-gutter</code>.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const page = document.getElementById('page');
+  const cs = () => getComputedStyle(page);
+  const px = n => Math.round(n) + 'px';
+
+  function readout() {
+    const s = cs();
+    const pageW = page.getBoundingClientRect().width;
+    const pad = parseFloat(s.getPropertyValue('--grid-pad'));
+    const capMax = parseFloat(s.getPropertyValue('--grid-pattern-max'));
+    const ratio = parseFloat(s.getPropertyValue('--grid-pattern-ratio'));
+    const capMin = parseFloat(s.getPropertyValue('--grid-pattern-min'));
+
+    const max = Math.max(0, Math.min(pageW - 2 * pad, capMax));
+    const min = Math.max(0, Math.min(max * ratio, capMin));
+
+    document.getElementById('hud-vw').textContent = px(window.innerWidth);
+    document.getElementById('hud-pad').textContent = px(pad);
+    document.getElementById('hud-max').textContent = px(max);
+    document.getElementById('hud-min').textContent = px(min);
+    const mobile = window.innerWidth <= 960;
+    const chip = document.getElementById('hud-mode');
+    chip.textContent = mobile ? 'mobile' : 'desktop';
+    // Figma rail colours: lavender = min pattern (mobile), cyan = max pattern.
+    chip.style.background = mobile ? 'var(--rail-min)' : 'var(--rail-max)';
+
+    // Stamp each rail in the diagram with its own measured width.
+    const diagram = document.getElementById('diagram');
+    diagram.querySelectorAll('[data-w]').forEach(el => {
+      const rail = el.closest('.rail') || diagram;
+      el.textContent = '(' + px(rail.getBoundingClientRect().width) + ')';
+    });
+  }
+
+  /* ---- the CTA, authored once and reused in every slot ---- */
+  /* The CTA from Responsive layout 2.0. The photograph is decorative — all the
+     meaning is in the text beside it — so alt is empty and it stays out of the
+     accessibility tree. In a real page .cta__title would be an <h2>; it is a
+     <p> here only because this demo renders the component eight times over. */
+  const CTA = `
+    <div class="cta">
+      <div class="cta__inner">
+        <div class="cta__media">
+          <img class="cta__img" src="cta.jpg" alt="">
+          <div class="cta__scrim"></div>
+        </div>
+        <div class="cta__content">
+          <p class="cta__title">Your time is now</p>
+          <p class="cta__copy">Stop asking if you can &ndash; ask how far you can go.</p>
+          <div class="cta__actions">
+            <a class="cta__btn" href="#">Apply now</a>
+            <a class="cta__btn cta__btn--ghost" href="#">Get details</a>
+          </div>
+        </div>
+      </div>
+      <div class="cta__tier">tier: </div>
+    </div>`;
+
+  /* Scope frames: a real page at the target width, scaled to fit the column. */
+  document.querySelectorAll('.scope').forEach(sc => {
+    const w = +sc.dataset.w, pad = +sc.dataset.pad;
+    sc.querySelector('.scope__view').inert = true;
+    sc.querySelector('.scope__page').innerHTML =
+      `<div class="grid-page" style="--grid-pad:${pad}px;width:${w}px;max-width:none">
+         <div class="grid-band"><div class="l-max">${CTA}</div></div>
+       </div>`;
+    const patternMax = Math.min(Math.min(w, 1920) - 2 * pad, 1440);
+    sc.querySelector('[data-scope-note]').textContent =
+      `· padding ${pad} · .l-max ${Math.round(patternMax)}px`;
+  });
+
+  function fitScopes() {
+    document.querySelectorAll('.scope').forEach(sc => {
+      const target = +sc.dataset.w;
+      const view = sc.querySelector('.scope__view');
+      const page = sc.querySelector('.scope__page');
+      const s = Math.min(1, view.clientWidth / target);
+      page.style.setProperty('--s', s);
+      // scrollHeight is the pre-transform layout height, which is what we scale.
+      view.style.height = Math.ceil(page.scrollHeight * s) + 'px';
+    });
+  }
+
+  /* The same component dropped into three different slot widths. */
+  document.getElementById('slot-max').innerHTML = CTA;
+  document.getElementById('slot-min').innerHTML = CTA;
+  document.getElementById('slot-grid').innerHTML = CTA + CTA + CTA;
+
+  const btn = document.getElementById('grid-toggle');
+  btn.addEventListener('click', () => {
+    const on = btn.getAttribute('aria-pressed') === 'true';
+    btn.setAttribute('aria-pressed', String(!on));
+    page.classList.toggle('grid-overlay', !on);
+  });
+
+  addEventListener('resize', () => { readout(); fitScopes(); });
+  readout();
+  fitScopes();
+  // Web fonts can settle after first paint and change the scaled height.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitScopes);
+</script>
+
+</body>
+</html>
