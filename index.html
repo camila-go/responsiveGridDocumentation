@@ -19,11 +19,7 @@
     --swatch-line: #c2c2c2;
     --swatch-radius: 20px;
 
-    /* Rail fills, straight off the Figma "Grid" page */
-    --rail-outside: #000000;
-    --rail-padding: #ffe0ae;
-    --rail-max: #aef3ff;
-    --rail-min: #edaeff;
+    /* Band fills come from grid.css: --grid-fill-outside / -margin / -max / -min */
   }
   * { box-sizing: border-box; }
   body {
@@ -74,28 +70,28 @@
   .stack.hero > p:last-child { margin-top: 10px; }
   .stack { display: flex; flex-direction: column; gap: 20px; }
 
-  /* ---- rail diagram ----
-     Nested rails, coloured exactly as the Figma "Grid" page draws them: black
-     outside the container, peach padding, cyan max pattern, lavender min. */
-  .diagram { position: relative; height: 260px; background: var(--rail-outside); }
-  .diagram .rail {
+  /* ---- gridband diagram ----
+     Nested bands, coloured exactly as the Figma "Grid" page draws them: black
+     outside the container, peach margin, cyan max pattern, lavender min. */
+  .diagram { position: relative; height: 260px; background: var(--grid-fill-outside); }
+  .diagram .gridband {
     position: absolute; inset-block: 0; left: 50%; translate: -50% 0;
     display: flex; align-items: flex-start; justify-content: flex-start;
     padding: 8px;
     font: 600 12px/1 ui-monospace, Menlo, monospace; color: var(--ink-soft);
     white-space: nowrap;
   }
-  /* Labels ride in their own transparent copy of each rail so a narrower rail
-     painted on top can't cover the wider rail's text. */
+  /* Labels ride in their own transparent copy of each gridband so a narrower gridband
+     painted on top can't cover the wider gridband's text. */
   .diagram .tag {
     background: none; outline: 0; z-index: 5; pointer-events: none;
     inset-block: auto; top: var(--y); height: auto;
   }
-  /* Each label is a solid chip rather than bare text on the rail. A label is
-     wider than its own rail at most viewports, so it always ends up crossing
+  /* Each label is a solid chip rather than bare text on the gridband. A label is
+     wider than its own gridband at most viewports, so it always ends up crossing
      into a neighbouring band — bare text can't hold a contrast ratio against
      four different fills. The chip fixes the pairing at ink-on-white (13.6:1)
-     and a colour dot carries the rail identity instead of the text colour. */
+     and a colour dot carries the gridband identity instead of the text colour. */
   .diagram .chip {
     display: inline-block; padding: 4px 8px; border-radius: 4px;
     background: #fff; color: var(--ink);
@@ -111,16 +107,16 @@
   }
   /* Drop the long description before the chip outgrows a narrow page. */
   @media (max-width: 760px) { .diagram .chip .desc { display: none; } }
-  .rail-container { width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad))); background: var(--rail-padding); }
-  .rail-max { width: min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)); background: var(--rail-max); }
-  .rail-min {
+  .gridband-container { width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad))); background: var(--grid-fill-margin); }
+  .gridband-max { width: min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)); background: var(--grid-fill-max); }
+  .gridband-min {
     width: min((100% - 2 * var(--grid-pad)) * var(--grid-pattern-ratio), var(--grid-pattern-min));
-    background: var(--rail-min);
+    background: var(--grid-fill-min);
   }
   .diagram .label-page { position: absolute; top: 8px; left: 8px; z-index: 5; }
   /* Below the breakpoint .l-min resolves to .l-max, so there is no separate
-     band to draw. Hides the rail and its label chip together. */
-  @media (max-width: 960px) { .diagram .rail-min { display: none; } }
+     band to draw. Hides the gridband and its label chip together. */
+  @media (max-width: 960px) { .diagram .gridband-min { display: none; } }
 
   /* ---- demo blocks ---- */
   .demo { background: var(--swatch); border: 1px solid var(--swatch-line); border-radius: var(--swatch-radius); padding: 16px; }
@@ -245,7 +241,7 @@
   }
   .scope__head em { font-style: normal; color: var(--ink-soft); opacity: 0.8; }
   .scope__head .pill {
-    padding: 3px 8px; border-radius: 999px; background: var(--rail-max);
+    padding: 3px 8px; border-radius: 999px; background: var(--grid-fill-max);
     color: var(--ink); font-weight: 700;
   }
   /* Lighter than --swatch so the component's media block reads against it. */
@@ -283,32 +279,29 @@
       <p class="eyebrow">Responsive document</p>
       <h1>Grid Prototype</h1>
       <p>One breakpoint at 960px, fixed padding either side of it (32 desktop, 16 mobile), and two
-        content widths that scale with the browser until they cap. Resize the window — the rail
+        content widths that scale with the browser until they cap. Resize the window — the gridband
         diagram below reports its own live widths.</p>
     </div>
   </section>
 
   <!-- ---------------------------------------------------------------- -->
   <section class="grid-band">
-    <div class="l-max stack" style="margin-bottom:20px">
-      <h2>The rails</h2>
-    </div>
     <div class="diagram" id="diagram">
-      <div class="rail rail-container" aria-hidden="true"></div>
-      <div class="rail rail-max" aria-hidden="true"></div>
-      <div class="rail rail-min" aria-hidden="true"></div>
+      <div class="gridband gridband-container" aria-hidden="true"></div>
+      <div class="gridband gridband-max" aria-hidden="true"></div>
+      <div class="gridband gridband-min" aria-hidden="true"></div>
 
       <div class="label-page">
-        <span class="chip"><i class="dot" style="background:var(--rail-outside)"></i>page <em class="desc">max supported 1920</em> <em data-w></em></span>
+        <span class="chip"><i class="dot" style="background:var(--grid-fill-outside)"></i>page <em class="desc">max supported 1920</em> <em data-w></em></span>
       </div>
-      <div class="rail rail-container tag" style="--y:46px">
-        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em data-margin></em> <em class="desc">padded shell for page chrome</em> <em data-w></em></span>
+      <div class="gridband gridband-container tag" style="--y:46px">
+        <span class="chip"><i class="dot" style="background:var(--grid-fill-margin)"></i>.l-container <em data-margin></em> <em class="desc">padded shell for page chrome</em> <em data-w></em></span>
       </div>
-      <div class="rail rail-max tag" style="--y:84px">
-        <span class="chip"><i class="dot" style="background:var(--rail-max)"></i>.l-max <em class="desc">max pattern width</em> <em data-w></em></span>
+      <div class="gridband gridband-max tag" style="--y:84px">
+        <span class="chip"><i class="dot" style="background:var(--grid-fill-max)"></i>.l-max <em class="desc">max pattern width</em> <em data-w></em></span>
       </div>
-      <div class="rail rail-min tag" style="--y:122px">
-        <span class="chip"><i class="dot" style="background:var(--rail-min)"></i>.l-min <em class="desc">min pattern width</em> <em data-w></em></span>
+      <div class="gridband gridband-min tag" style="--y:122px">
+        <span class="chip"><i class="dot" style="background:var(--grid-fill-min)"></i>.l-min <em class="desc">min pattern width</em> <em data-w></em></span>
       </div>
     </div>
   </section>
@@ -333,7 +326,7 @@
     </div>
 
     <div class="l-container demo" style="margin-top:12px">
-      <div class="card"><b>.l-container</b><span>padded shell — same rail as .l-max, padding inside the box so a background spans the band</span></div>
+      <div class="card"><b>.l-container</b><span>padded shell — same gridband as .l-max, padding inside the box so a background spans the band</span></div>
     </div>
   </section>
 
@@ -449,7 +442,7 @@
         <code>padding DT 1027</code> study in the Grid page the authoritative one — it draws 1024 &rarr;
         960 / 780, which is exactly what the formula produces. The <code>padding DT 1024</code> frame
         next to it (80px) is the superseded option.</p>
-      <p class="note"><strong>1440 is the default.</strong> Padding sits outside that rail, not inside
+      <p class="note"><strong>1440 is the default.</strong> Padding sits outside that gridband, not inside
         it, so content reaches its 1440 cap once the viewport is 1504 (1440&nbsp;+&nbsp;2&times;32) or
         wider — the 1440 row above shows the cap not yet reached. 1504 is a consequence of
         <code>--grid-pad-desktop</code>, not a design number; don&rsquo;t hardcode it, and don&rsquo;t
@@ -466,8 +459,8 @@
   const page = document.getElementById('page');
   const px = n => Math.round(n) + 'px';
 
-  /* Stamp each rail in the diagram with its own measured width. The rails are
-     the live readout now — they carry the same numbers the top bar used to,
+  /* Stamp each band in the diagram with its own measured width. The grid is
+     the live readout now — it carries the same numbers the top bar used to,
      but in the place they actually describe. */
   function readout() {
     const diagram = document.getElementById('diagram');
@@ -479,8 +472,8 @@
     });
 
     diagram.querySelectorAll('[data-w]').forEach(el => {
-      const rail = el.closest('.rail') || diagram;
-      el.textContent = '(' + px(rail.getBoundingClientRect().width) + ')';
+      const gridband = el.closest('.gridband') || diagram;
+      el.textContent = '(' + px(gridband.getBoundingClientRect().width) + ')';
     });
   }
 

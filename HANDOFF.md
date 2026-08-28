@@ -47,7 +47,7 @@ from Responsive layout 2.0. It is committed to this repo.
 widths, Flex grid, How a component responds, and Reference. They carry a
 `hidden` attribute on their `<section>` — remove it to bring one back. The page
 is presenting as a prototype of the grid itself, so it shows only the hero and
-the rail diagram. Everything documented below still exists in the file and
+the band diagram. Everything documented below still exists in the file and
 still works; you just won't see it on screen.
 
 Nothing is uncommitted. Everything described here is on `origin/main`.
@@ -85,7 +85,7 @@ pattern-max = min(page − 2 × padding, 1440)
 pattern-min = pattern-max × 0.8125        # 1170 / 1440
 ```
 
-**1440 is the default content width**, and the padding sits outside that rail
+**1440 is the default content width**, and the margin sits outside that width
 rather than inside it — so content reaches 1440 once the viewport is 1504
 (1440 + 2×32) or wider. 1504 is a consequence of the padding token, not a
 design number: never hardcode it, and never quote it as "the default width".
@@ -214,10 +214,10 @@ less headroom. Check at a few widths, and judge by the lowest.
 
 Also fixed, and worth not regressing:
 
-- **Diagram labels are chips**, not bare text on the rails. A label is wider
-  than its own rail at most viewports, so it always crosses onto peach or cyan
-  — bare text was ~1.3:1 there. Chips are 12.3:1, with a colour dot carrying the
-  rail identity so colour is no longer the only differentiator.
+- **Diagram labels are chips**, not bare text on the grid bands. A label is
+  wider than its own band at most viewports, so it always crosses onto peach or
+  cyan — bare text was ~1.3:1 there. Chips are 12.3:1, with a colour dot carrying
+  the band identity so colour is no longer the only differentiator.
 - **Scaled preview frames are `inert`.** They're pictures of the component,
   rendered at up to half size, whose links duplicate the full-size copies below.
   Without `inert` you tab through six unreachable-looking buttons first.
@@ -278,10 +278,10 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 | `.grid-page` | Page shell; caps at max supported width and centres |
 | `.grid-band` | Full-bleed horizontal band; backgrounds live here |
 | `.l-full` | Full width content, edge to edge |
-| `.l-container` | Padded shell — same 1440 rail, padding inside the box so a background spans the band |
+| `.l-container` | Padded shell — same 1440 width, margin inside the box so a background spans the band |
 | `.l-max` | Max pattern width — the default content width |
 | `.l-min` | Narrow content width — desktop only; resolves to `.l-max` below 960 |
-| `.grid-overlay` | Debug: draws the rails over the live page |
+| `.grid-overlay` | Debug: draws the grid over the live page |
 
 **Flex grid**
 
@@ -304,14 +304,14 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 --grid-pad-desktop     32px
 --grid-pad             resolved per breakpoint
 --grid-gutter          24px        assumption, see above
---grid-rail-outside / -padding / -max / -min / -alpha        overlay colours
+--grid-fill-outside / -margin / -max / -min / -alpha         overlay colours
 ```
 
 ---
 
 ## Dropping this into an existing project
 
-`CU-Home-Page-Test/css/tokens.css` already carries these two rails as hardcoded
+`CU-Home-Page-Test/css/tokens.css` already carries these two grid bands as hardcoded
 values:
 
 ```css

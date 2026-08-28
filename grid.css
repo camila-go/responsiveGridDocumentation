@@ -15,7 +15,7 @@
      narrow content width       1170px ("Min Pattern Width")
      max supported width        1920px
 
-   1440 is THE default. Padding sits outside that rail, not inside it, so the
+   1440 is THE default. Padding sits outside that band, not inside it, so the
    content reaches its 1440 cap once the viewport is 1504 (1440 + 2 x 32) or
    wider. 1504 is a consequence of the padding token, not a design number —
    never hardcode it, and don't quote it as "the default width".
@@ -43,7 +43,7 @@
    ========================================================================== */
 
 :root {
-  /* --- Fixed rails, straight from the design files --------------------- */
+  /* --- Fixed widths, straight from the design files -------------------- */
   --grid-max-supported: 1920px;   /* page stops growing here */
   --grid-pattern-max: 1440px;     /* "Max Pattern Width"  */
   --grid-pattern-min: 1170px;     /* "Min Pattern Width"  */
@@ -99,9 +99,9 @@
   margin-inline: auto;
 }
 
-/* The padded shell. Same rail as .l-max, but the padding is inside the box
+/* The padded shell. Same band as .l-max, but the padding is inside the box
    instead of outside it, so a background or border on this element spans the
-   full band while its CONTENT still lands on the 1440 rail. Use it for page
+   full band while its CONTENT still lands on the 1440 band. Use it for page
    chrome — header, footer, nav — that needs to paint edge to edge.
    Its outer width is 1440 + 2 x padding; that total is derived and tracks
    --grid-pad-desktop. Reach for .l-max unless you need the background. */
@@ -221,9 +221,9 @@
 
 /* ==========================================================================
    Grid overlay — the diagram from the Figma files, live.
-   Add .grid-overlay to .grid-page (or toggle it) to see the rails.
+   Add .grid-overlay to .grid-page (or toggle it) to see the grid.
 
-   Colours are the Figma rail fills, straight off the "Grid" page:
+   Colours are the Figma fills, straight off the "Grid" page:
      outside the container   #000000
      desktop / mobile padding  #ffe0ae
      max pattern width       #aef3ff
@@ -231,11 +231,11 @@
    ========================================================================== */
 
 :root {
-  --grid-rail-outside: #000000;
-  --grid-rail-padding: #ffe0ae;
-  --grid-rail-max: #aef3ff;
-  --grid-rail-min: #edaeff;
-  --grid-rail-alpha: 42%;
+  --grid-fill-outside: #000000;
+  --grid-fill-margin: #ffe0ae;
+  --grid-fill-max: #aef3ff;
+  --grid-fill-min: #edaeff;
+  --grid-fill-alpha: 42%;
 }
 
 .grid-overlay {
@@ -257,32 +257,32 @@
    page shows through, which is the black band in the Figma diagram. */
 .grid-overlay::before {
   width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad)));
-  background: color-mix(in srgb, var(--grid-rail-padding) var(--grid-rail-alpha), transparent);
+  background: color-mix(in srgb, var(--grid-fill-margin) var(--grid-fill-alpha), transparent);
 }
 
 /* Max pattern width, with the min pattern width drawn inside it as a gradient
-   stop so both rails come out of a single pseudo-element. */
+   stop so both bands come out of a single pseudo-element. */
 .grid-overlay::after {
   width: min(100% - 2 * var(--grid-pad), var(--grid-pattern-max));
   --_min-inset: calc((100% - 100% * var(--grid-pattern-ratio)) / 2);
   background: linear-gradient(
     to right,
-    color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent) 0 var(--_min-inset),
-    color-mix(in srgb, var(--grid-rail-min) var(--grid-rail-alpha), transparent) var(--_min-inset)
+    color-mix(in srgb, var(--grid-fill-max) var(--grid-fill-alpha), transparent) 0 var(--_min-inset),
+    color-mix(in srgb, var(--grid-fill-min) var(--grid-fill-alpha), transparent) var(--_min-inset)
       calc(100% - var(--_min-inset)),
-    color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent)
+    color-mix(in srgb, var(--grid-fill-max) var(--grid-fill-alpha), transparent)
       calc(100% - var(--_min-inset)) 100%
   );
 }
 
 /* Below the breakpoint .l-min resolves to .l-max, so there is no separate min
-   band to draw — the max rail becomes a flat fill.
+   band to draw — the max band becomes a flat fill.
 
    This block has to come AFTER the rule above. A media query adds nothing to
    specificity, so declaring it earlier in the file loses to the base rule and
    the min band keeps painting on mobile. */
 @media (max-width: 960px) {
   .grid-overlay::after {
-    background: color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent);
+    background: color-mix(in srgb, var(--grid-fill-max) var(--grid-fill-alpha), transparent);
   }
 }

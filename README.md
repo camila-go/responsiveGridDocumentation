@@ -173,19 +173,19 @@ column can come back down.
 
 ### Grid overlay
 
-Add `.grid-overlay` to `.grid-page` to draw the rails from the Figma diagram over
+Add `.grid-overlay` to `.grid-page` to draw the grid from the Figma diagram over
 the live page, in the Figma fills. The spec page has a toggle for it.
 
 ## Colour
 
-Rail and annotation colours are taken from the Figma "Grid" page, not invented:
+Grid and annotation colours are taken from the Figma "Grid" page, not invented:
 
 | Token | Value | Role |
 |---|---|---|
-| `--grid-rail-outside` | `#000000` | outside the container |
-| `--grid-rail-padding` | `#ffe0ae` | page padding |
-| `--grid-rail-max` | `#aef3ff` | max pattern width |
-| `--grid-rail-min` | `#edaeff` | min pattern width |
+| `--grid-fill-outside` | `#000000` | outside the container |
+| `--grid-fill-margin` | `#ffe0ae` | page margin |
+| `--grid-fill-max` | `#aef3ff` | max pattern width |
+| `--grid-fill-min` | `#edaeff` | min pattern width |
 
 The spec page chrome uses the source tokens: `careerblue-500 #253746`,
 `careerblue-200 #a8afb5`, `gl-neutral-600 #383838` (the annotation grey),
@@ -219,11 +219,11 @@ re-measure rather than assuming 0.18 is still enough.
 
 **Other fixes:**
 
-- **Diagram labels.** They were bare text on the rails — white on the black
-  band, which is fine until the label outgrows its own rail and crosses onto
+- **Diagram labels.** They were bare text on the grid bands — white on the black
+  band, which is fine until the label outgrows its own band and crosses onto
   peach (`#ffe0ae`) and cyan (`#aef3ff`) at ~1.3:1. Labels are now solid chips
-  at 12.3:1, with a colour dot carrying the rail identity instead of the text
-  colour. Colour is no longer the only thing distinguishing a rail — each is
+  at 12.3:1, with a colour dot carrying the band identity instead of the text
+  colour. Colour is no longer the only thing distinguishing a band — each is
   named.
 - **Focus.** A two-tone ring (white outline, ink outer shadow) so it stays
   visible on white, on the dark HUD, and on the photograph. No single colour
