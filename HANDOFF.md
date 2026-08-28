@@ -57,9 +57,9 @@ python3 -m http.server 4321
 
 Then <http://localhost:4321>.
 
-Opening `index.html` straight off the filesystem works for everything except
-the canvas contrast measurement in the spec page, which needs a real origin to
-read image pixels back.
+Opening `index.html` straight off the filesystem works. The only thing that
+needs a real origin is the contrast-measuring console snippet under
+Accessibility, which reads image pixels back off a canvas.
 
 > On the machine this was built on, the macOS sandbox blocks serving from
 > `~/Documents`, so the preview ran from a `/tmp` mirror registered as
@@ -148,8 +148,58 @@ lighter parts of the photograph.
 | Copy, 16px 400 (normal) | 4.5:1 | **3.96:1 fail** | 5.51:1 |
 
 > **If the photograph is ever swapped, re-measure.** 0.18 is tuned to this
-> image, not derived from a principle. The measurement code is in the spec
-> page's script block and can be re-run in the console.
+> image, not derived from a principle.
+
+To re-measure, serve the page and paste this into the console. It composites
+the scrim over the real image pixels behind a text box and reports the worst
+sample, which is the number that has to clear the threshold:
+
+```js
+const srgb = c => (c /= 255) <= 0.03928 ? c/12.92 : ((c+0.055)/1.055)**2.4;
+const lum  = (r,g,b) => 0.2126*srgb(r) + 0.7152*srgb(g) + 0.0722*srgb(b);
+const FLOOR = 0.18;                              // .cta__scrim's flat layer
+
+const cta    = document.querySelector('#slot-max .cta');   // must be overlay tier
+const img    = cta.querySelector('.cta__img');
+const mediaR = cta.querySelector('.cta__media').getBoundingClientRect();
+const cv = Object.assign(document.createElement('canvas'),
+                         {width: img.naturalWidth, height: img.naturalHeight});
+cv.getContext('2d').drawImage(img, 0, 0);
+const ctx = cv.getContext('2d');
+
+const worst = el => {
+  const t = el.getBoundingClientRect();
+  let out = Infinity;
+  for (let i = 0; i <= 24; i++) for (let j = 0; j <= 8; j++) {
+    const nx = (t.left - mediaR.left + t.width  * i/24) / mediaR.width;
+    const ny = (t.top  - mediaR.top  + t.height * j/8 ) / mediaR.height;
+    const ix = Math.round(nx * cv.width);
+    const iy = Math.round(ny * cv.height * 0.55 + cv.height * 0.18);
+    if (ix < 0 || iy < 0 || ix >= cv.width || iy >= cv.height) continue;
+    const d = ctx.getImageData(ix, iy, 1, 1).data;
+    // scrim: ellipse 36.7% x 145% at 50% 65.6%, 0.6 -> 0, then the flat floor
+    const ex = (nx - 0.5) / 0.367, ey = (ny - 0.656) / 1.45;
+    const a  = 1 - (1 - 0.6 * (1 - Math.min(1, Math.hypot(ex, ey)))) * (1 - FLOOR);
+    const L  = lum(...[d[0], d[1], d[2]].map(c => c * (1 - a)));
+    out = Math.min(out, 1.05 / (L + 0.05));      // vs white text
+  }
+  return +out.toFixed(2);
+};
+
+console.table({
+  headline: {ratio: worst(cta.querySelector('.cta__title')), needs: 3.0},
+  copy:     {ratio: worst(cta.querySelector('.cta__copy')),  needs: 4.5},
+});
+```
+
+Needs a real origin — `file://` blocks the canvas readback. Set `FLOOR = 0`
+to see what the Figma scrim does on its own.
+
+**Expect different numbers at different window sizes**, and don't read that as
+a discrepancy. The crop and the text position both move with width, so the
+worst-case pixel changes. The table above is measured at a 1216px CTA; the same
+snippet at a 606px CTA returns 4.59 and 4.80 — still passing, but with much
+less headroom. Check at a few widths, and judge by the lowest.
 
 Also fixed, and worth not regressing:
 
@@ -201,8 +251,8 @@ Things that already caused a bug once, or will.
    subject is placed with a transform, not `object-position`.
 
 6. **Percentage widths can go negative** below ~64px page width. Guarded with
-   `max(0px, …)` in CSS and `Math.max(0, …)` in the readout. Not reachable in a
-   real browser, but it surfaced when the preview pane reported a 0px viewport.
+   `max(0px, …)` in CSS. Not reachable in a real browser, but it surfaced when
+   the preview pane reported a 0px viewport.
 
 ---
 

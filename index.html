@@ -43,18 +43,13 @@
   p  { margin: 0; max-width: 68ch; }
   code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9em; background: var(--swatch); padding: 1px 5px; border-radius: 4px; }
 
-  /* ---- live readout bar ---- */
+  /* ---- sticky toggle bar ---- */
   .hud {
     position: sticky; top: 0; z-index: 100;
     display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
     padding: 10px 16px;
     background: var(--ink); color: #fff;
     font: 500 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
-  }
-  .hud b { font-weight: 700; color: var(--rail-max); }
-  .hud .mode {
-    padding: 3px 8px; border-radius: 999px; font-weight: 700;
-    background: var(--rail-max); color: var(--ink);
   }
   .hud button {
     margin-left: auto; font: inherit; cursor: pointer;
@@ -267,11 +262,6 @@
 <body>
 
 <div class="hud">
-  <span>viewport <b id="hud-vw">–</b></span>
-  <span class="mode" id="hud-mode">–</span>
-  <span>padding <b id="hud-pad">–</b></span>
-  <span>pattern-max <b id="hud-max">–</b></span>
-  <span>pattern-min <b id="hud-min">–</b></span>
   <button id="grid-toggle" aria-pressed="false">Grid overlay</button>
 </div>
 
@@ -283,8 +273,8 @@
       <p class="eyebrow">Responsive document</p>
       <h1>Grid Documentation</h1>
       <p>One breakpoint at 960px, fixed padding either side of it (32 desktop, 16 mobile), and two
-        pattern widths that scale with the browser until they cap. Resize the window — the readout
-        above is live.</p>
+        content widths that scale with the browser until they cap. Resize the window — the rail
+        diagram below reports its own live widths.</p>
     </div>
   </section>
 
@@ -466,31 +456,12 @@
 
 <script>
   const page = document.getElementById('page');
-  const cs = () => getComputedStyle(page);
   const px = n => Math.round(n) + 'px';
 
+  /* Stamp each rail in the diagram with its own measured width. The rails are
+     the live readout now — they carry the same numbers the top bar used to,
+     but in the place they actually describe. */
   function readout() {
-    const s = cs();
-    const pageW = page.getBoundingClientRect().width;
-    const pad = parseFloat(s.getPropertyValue('--grid-pad'));
-    const capMax = parseFloat(s.getPropertyValue('--grid-pattern-max'));
-    const ratio = parseFloat(s.getPropertyValue('--grid-pattern-ratio'));
-    const capMin = parseFloat(s.getPropertyValue('--grid-pattern-min'));
-
-    const max = Math.max(0, Math.min(pageW - 2 * pad, capMax));
-    const min = Math.max(0, Math.min(max * ratio, capMin));
-
-    document.getElementById('hud-vw').textContent = px(window.innerWidth);
-    document.getElementById('hud-pad').textContent = px(pad);
-    document.getElementById('hud-max').textContent = px(max);
-    document.getElementById('hud-min').textContent = px(min);
-    const mobile = window.innerWidth <= 960;
-    const chip = document.getElementById('hud-mode');
-    chip.textContent = mobile ? 'mobile' : 'desktop';
-    // Figma rail colours: lavender = min pattern (mobile), cyan = max pattern.
-    chip.style.background = mobile ? 'var(--rail-min)' : 'var(--rail-max)';
-
-    // Stamp each rail in the diagram with its own measured width.
     const diagram = document.getElementById('diagram');
     diagram.querySelectorAll('[data-w]').forEach(el => {
       const rail = el.closest('.rail') || diagram;
