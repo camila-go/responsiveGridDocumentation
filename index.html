@@ -102,6 +102,8 @@
     font: 700 12px/1.25 ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   .diagram .chip em { font-style: normal; font-weight: 400; color: var(--ink-soft); }
+  /* Separate the label's parts so they don't run together. */
+  .diagram .chip em::before { content: "· "; opacity: 0.5; }
   .diagram .dot {
     display: inline-block; width: 8px; height: 8px; border-radius: 2px;
     margin-right: 6px; vertical-align: baseline;
@@ -300,7 +302,7 @@
         <span class="chip"><i class="dot" style="background:var(--rail-outside)"></i>page <em class="desc">max supported 1920</em> <em data-w></em></span>
       </div>
       <div class="rail rail-container tag" style="--y:46px">
-        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em class="desc">padded shell for page chrome</em> <em data-w></em></span>
+        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em data-margin></em> <em class="desc">padded shell for page chrome</em> <em data-w></em></span>
       </div>
       <div class="rail rail-max tag" style="--y:84px">
         <span class="chip"><i class="dot" style="background:var(--rail-max)"></i>.l-max <em class="desc">max pattern width</em> <em data-w></em></span>
@@ -469,6 +471,13 @@
      but in the place they actually describe. */
   function readout() {
     const diagram = document.getElementById('diagram');
+
+    // The peach band is the page margin, so label it with the live value.
+    const pad = getComputedStyle(page).getPropertyValue('--grid-pad').trim();
+    diagram.querySelectorAll('[data-margin]').forEach(el => {
+      el.textContent = 'margin ' + pad;
+    });
+
     diagram.querySelectorAll('[data-w]').forEach(el => {
       const rail = el.closest('.rail') || diagram;
       el.textContent = '(' + px(rail.getBoundingClientRect().width) + ')';
