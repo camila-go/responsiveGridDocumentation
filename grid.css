@@ -10,10 +10,15 @@
      single breakpoint          960px  (<=960 mobile, >=961 desktop)
      mobile padding             16px   (fixed)
      desktop padding            32px   (fixed)
-     max pattern width          1440px (variable — caps, never a floor)
-     min pattern width          1170px (variable)
-     total default desktop      1504px (1440 + 2 x 32)
+     default content width      1440px ("Max Pattern Width" — a cap, never
+                                        a floor)
+     narrow content width       1170px ("Min Pattern Width")
      max supported width        1920px
+
+   1440 is THE default. Padding sits outside that rail, not inside it, so the
+   content reaches its 1440 cap once the viewport is 1504 (1440 + 2 x 32) or
+   wider. 1504 is a consequence of the padding token, not a design number —
+   never hardcode it, and don't quote it as "the default width".
 
    Between the breakpoint and the cap nothing steps — the pattern widths scale
    with the browser ("Scales w/o breakpoint RELATIVE TO BROWSER WIDTH"). The
@@ -91,24 +96,28 @@
   margin-inline: auto;
 }
 
-/* Total default desktop width (1504 at >=1504px): the padded shell. Use for
-   page chrome — header, footer, nav — that should align to the outer rail
-   rather than to a pattern. Derived, so it tracks --grid-pad-desktop. */
+/* The padded shell. Same rail as .l-max, but the padding is inside the box
+   instead of outside it, so a background or border on this element spans the
+   full band while its CONTENT still lands on the 1440 rail. Use it for page
+   chrome — header, footer, nav — that needs to paint edge to edge.
+   Its outer width is 1440 + 2 x padding; that total is derived and tracks
+   --grid-pad-desktop. Reach for .l-max unless you need the background. */
 .l-container {
   width: min(100%, calc(var(--grid-pattern-max) + 2 * var(--grid-pad)));
   margin-inline: auto;
   padding-inline: var(--grid-pad);
 }
 
-/* Max pattern width — the default content width. 1440 at >=1504px.
+/* THE DEFAULT. Content width, capped at 1440 — reached once the viewport is
+   1504 (1440 + 2 x 32) or wider; fluid below that.
    max(0px, ...) so a page narrower than the padding can't compute negative. */
 .l-max {
   width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
   margin-inline: auto;
 }
 
-/* Min pattern width — the narrow content width. 1170 at >=1504px, and 81.25%
-   of the max pattern at every width below that. */
+/* The narrow content width. Caps at 1170, and is 81.25% of the default
+   content width at every viewport below the cap. */
 .l-min {
   width: max(0px, min(
     (100% - 2 * var(--grid-pad)) * var(--grid-pattern-ratio),

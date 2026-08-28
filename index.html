@@ -292,8 +292,8 @@
   <section class="grid-band">
     <div class="l-max stack" style="margin-bottom:20px">
       <h2>The rails</h2>
-      <p>Outer band is the page (capped at max supported width). Then the total default desktop width,
-        the max pattern width, and the min pattern width nested inside it.</p>
+      <p>Outer band is the page (capped at max supported width). Inside it, the padded shell, then
+        the default content width and the narrow content width.</p>
     </div>
     <div class="diagram" id="diagram">
       <div class="rail rail-container" aria-hidden="true"></div>
@@ -304,7 +304,7 @@
         <span class="chip"><i class="dot" style="background:var(--rail-outside)"></i>page <em class="desc">max supported 1920</em> <em data-w></em></span>
       </div>
       <div class="rail rail-container tag" style="--y:46px">
-        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em class="desc">total default desktop width</em> <em data-w></em></span>
+        <span class="chip"><i class="dot" style="background:var(--rail-padding)"></i>.l-container <em class="desc">padded shell for page chrome</em> <em data-w></em></span>
       </div>
       <div class="rail rail-max tag" style="--y:84px">
         <span class="chip"><i class="dot" style="background:var(--rail-max)"></i>.l-max <em class="desc">max pattern width</em> <em data-w></em></span>
@@ -327,15 +327,15 @@
     </div>
 
     <div class="l-max demo" style="margin-top:12px">
-      <div class="card"><b>.l-max</b><span>max pattern width — the default content width</span></div>
+      <div class="card"><b>.l-max</b><span>the default content width — caps at 1440</span></div>
     </div>
 
     <div class="l-min demo" style="margin-top:12px">
-      <div class="card"><b>.l-min</b><span>min pattern width — 81.25% of the max pattern</span></div>
+      <div class="card"><b>.l-min</b><span>the narrow content width — 81.25% of the default</span></div>
     </div>
 
     <div class="l-container demo" style="margin-top:12px">
-      <div class="card"><b>.l-container</b><span>total default desktop width — padded shell for page chrome</span></div>
+      <div class="card"><b>.l-container</b><span>padded shell — same rail as .l-max, padding inside the box so a background spans the band</span></div>
     </div>
   </section>
 
@@ -435,14 +435,15 @@
       <div class="table-wrap">
       <table>
         <caption>Computed widths at each measured breakpoint, in px.</caption>
-        <thead><tr><th scope="col">Browser width</th><th scope="col">Padding</th><th scope="col">Container</th><th scope="col">pattern-max</th><th scope="col">pattern-min</th></tr></thead>
+        <thead><tr><th scope="col">Browser width</th><th scope="col">Padding</th><th scope="col">Content (.l-max)</th><th scope="col">Narrow (.l-min)</th></tr></thead>
         <tbody>
-          <tr><td>1920</td><td>32</td><td>1504</td><td>1440</td><td>1170</td></tr>
-          <tr><td>1504</td><td>32</td><td>1504</td><td>1440</td><td>1170</td></tr>
-          <tr><td>1024</td><td>32</td><td>1024</td><td>960</td><td>780</td></tr>
-          <tr><td>961</td><td>32</td><td>961</td><td>897</td><td>729</td></tr>
-          <tr><td>960</td><td>16</td><td>960</td><td>928</td><td>754</td></tr>
-          <tr><td>375</td><td>16</td><td>375</td><td>343</td><td>279</td></tr>
+          <tr><td>1920</td><td>32</td><td>1440</td><td>1170</td></tr>
+          <tr><td>1504</td><td>32</td><td>1440</td><td>1170</td></tr>
+          <tr><td>1440</td><td>32</td><td>1376</td><td>1118</td></tr>
+          <tr><td>1024</td><td>32</td><td>960</td><td>780</td></tr>
+          <tr><td>961</td><td>32</td><td>897</td><td>729</td></tr>
+          <tr><td>960</td><td>16</td><td>928</td><td>754</td></tr>
+          <tr><td>375</td><td>16</td><td>343</td><td>279</td></tr>
         </tbody>
       </table>
       </div>
@@ -450,9 +451,12 @@
         <code>padding DT 1027</code> study in the Grid page the authoritative one — it draws 1024 &rarr;
         960 / 780, which is exactly what the formula produces. The <code>padding DT 1024</code> frame
         next to it (80px) is the superseded option.</p>
-      <p class="note"><strong>Total default desktop width is now 1504</strong>, not the 1600 written on
-        the Grid page — 1600 was 1440&nbsp;+&nbsp;2&times;80. It is derived from
-        <code>--grid-pad-desktop</code>, so it tracks the token rather than being hardcoded.</p>
+      <p class="note"><strong>1440 is the default.</strong> Padding sits outside that rail, not inside
+        it, so content reaches its 1440 cap once the viewport is 1504 (1440&nbsp;+&nbsp;2&times;32) or
+        wider — the 1440 row above shows the cap not yet reached. 1504 is a consequence of
+        <code>--grid-pad-desktop</code>, not a design number; don&rsquo;t hardcode it, and don&rsquo;t
+        quote it as the default width. The 1600 written on the Grid page was the same arithmetic
+        with the old 80px padding, and is stale.</p>
       <p class="note"><strong>Not in the design files:</strong> column count and gutter. The gutter
         defaults to 24px (3&times; the system&rsquo;s 8px base unit) via <code>--grid-gutter</code>.</p>
     </div>

@@ -22,9 +22,8 @@ spec page, [`cta.jpg`](cta.jpg) is the CTA photograph exported from Figma
 | Single breakpoint | **960px** — mobile ≤ 960, desktop ≥ 961 |
 | Mobile padding | **16px** fixed |
 | Desktop padding | **32px** fixed |
-| Max pattern width | **1440px** (a cap, not a floor) |
-| Min pattern width | **1170px** |
-| Total default desktop width | **1504px** (1440 + 2 × 32) |
+| **Default content width** | **1440px** — Figma's "Max Pattern Width". A cap, not a floor |
+| Narrow content width | **1170px** — Figma's "Min Pattern Width" |
 | Max supported width | **1920px** |
 
 Between the breakpoint and the cap nothing steps — the pattern widths scale with
@@ -38,15 +37,16 @@ pattern-min = pattern-max × 0.8125          # 1170 / 1440 = 0.8125
 
 That single pair reproduces **every** measured rectangle in both files:
 
-| page | padding | container | pattern-max | pattern-min | drawn in Figma as |
-|---|---|---|---|---|---|
-| 1920 | 32 | 1504 | 1440 | 1170 | max supported width |
-| 1504 | 32 | 1504 | 1440 | 1170 | total default desktop width |
-| 1024 | 32 | 1024 | 960 | 780 | `padding DT 1027` |
-| 961 | 32 | 961 | 897 | 729 | ">961 – just before small breakpoint" |
-| 960 | 16 | 960 | 928 | 754 | `padding M 960`, `usage M` |
-| 753 | 16 | 753 | 721 | 585 | "<961 – after mobile breakpoint" |
-| 375 | 16 | 375 | 343 | 279 | `padding M 375` |
+| page | padding | content (`.l-max`) | narrow (`.l-min`) | drawn in Figma as |
+|---|---|---|---|---|
+| 1920 | 32 | 1440 | 1170 | max supported width |
+| 1504 | 32 | 1440 | 1170 | first width where content hits its cap |
+| 1440 | 32 | 1376 | 1118 | — cap not yet reached |
+| 1024 | 32 | 960 | 780 | `padding DT 1027` |
+| 961 | 32 | 897 | 729 | ">961 – just before small breakpoint" |
+| 960 | 16 | 928 | 754 | `padding M 960`, `usage M` |
+| 753 | 16 | 721 | 585 | "<961 – after mobile breakpoint" |
+| 375 | 16 | 343 | 279 | `padding M 375` |
 
 Verified in-browser against every row.
 
@@ -57,10 +57,11 @@ Padding is 32 on desktop, 16 on mobile. Two consequences worth knowing:
 - It makes the **`padding DT 1027`** frame in the Grid page the authoritative
   1024px study — it draws 1024 → 960 / 780, exactly what the formula produces.
   The `padding DT 1024` frame beside it (80px → 864 / 702) is superseded.
-- **Total default desktop width is 1504, not the 1600 written on the Grid page.**
-  1600 was 1440 + 2×80. `.l-container` derives it from `--grid-pad-desktop`
-  rather than hardcoding, so it tracks the token. If any spec text or redline
-  still says 1600, that number is stale.
+- **1440 is the default content width, and padding sits outside it.** Content
+  reaches its 1440 cap once the viewport is 1504 (1440 + 2×32) or wider. 1504
+  is a consequence of `--grid-pad-desktop`, not a design number — don't
+  hardcode it and don't quote it as "the default width". The 1600 on the Grid
+  page was the same arithmetic with the old 80px padding, and is stale.
 
 ## Usage
 
@@ -69,10 +70,10 @@ Padding is 32 on desktop, 16 on mobile. Two consequences worth knowing:
 
 <div class="grid-page">
   <section class="grid-band">          <!-- full-bleed band, background lives here -->
-    <div class="l-max">…</div>          <!-- max pattern width -->
+    <div class="l-max">…</div>          <!-- the default content width -->
   </section>
   <section class="grid-band">
-    <div class="l-min">…</div>          <!-- min pattern width -->
+    <div class="l-min">…</div>          <!-- narrow content width -->
   </section>
   <section class="grid-band">
     <div class="l-full">…</div>         <!-- full width content, edge to edge -->
@@ -83,12 +84,12 @@ Padding is 32 on desktop, 16 on mobile. Two consequences worth knowing:
 Widths are percentages of the containing block, so a width class must sit
 directly inside a full-width band.
 
-| Class | Width at ≥1504px |
+| Class | Content width at ≥1504px |
 |---|---|
-| `.l-full` | 1920 — full width content |
-| `.l-container` | 1504 — padded shell, for page chrome (header, footer, nav) |
-| `.l-max` | 1440 — default content width |
+| `.l-max` | **1440 — the default.** Reach for this first |
 | `.l-min` | 1170 — narrow content width |
+| `.l-full` | full width content, edge to edge |
+| `.l-container` | 1440, but with the padding *inside* the box, so a background or border spans the whole band. For page chrome — header, footer, nav. Its outer width is 1440 + 2×padding |
 
 ### Flex grid
 

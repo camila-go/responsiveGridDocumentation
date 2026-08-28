@@ -78,22 +78,27 @@ pattern-max = min(page − 2 × padding, 1440)
 pattern-min = pattern-max × 0.8125        # 1170 / 1440
 ```
 
-If you change nothing else, understand this. The numbers written on the Figma
-Grid page (1440, 1170, 1600) are **that formula evaluated at 1920px**, not
-independent constants. Treating them as fixed values is the single most likely
-way to break this.
+**1440 is the default content width**, and the padding sits outside that rail
+rather than inside it — so content reaches 1440 once the viewport is 1504
+(1440 + 2×32) or wider. 1504 is a consequence of the padding token, not a
+design number: never hardcode it, and never quote it as "the default width".
+
+The numbers written on the Figma Grid page (1440, 1170, 1600) are **that
+formula evaluated at 1920px**, not independent constants. Treating them as
+fixed values is the single most likely way to break this.
 
 Verified output — every row matches a measured rectangle in the source files:
 
-| page | padding | container | pattern-max | pattern-min |
-| --- | --- | --- | --- | --- |
-| 1920 | 32 | 1504 | 1440 | 1170 |
-| 1504 | 32 | 1504 | 1440 | 1170 |
-| 1024 | 32 | 1024 | 960 | 780 |
-| 961 | 32 | 961 | 897 | 729 |
-| 960 | 16 | 960 | 928 | 754 |
-| 753 | 16 | 753 | 721 | 585 |
-| 375 | 16 | 375 | 343 | 279 |
+| page | padding | content (`.l-max`) | narrow (`.l-min`) |
+| --- | --- | --- | --- |
+| 1920 | 32 | 1440 | 1170 |
+| 1504 | 32 | 1440 | 1170 |
+| 1440 | 32 | 1376 | 1118 |
+| 1024 | 32 | 960 | 780 |
+| 961 | 32 | 897 | 729 |
+| 960 | 16 | 928 | 754 |
+| 753 | 16 | 721 | 585 |
+| 375 | 16 | 343 | 279 |
 
 ---
 
@@ -105,7 +110,7 @@ listed with the reasoning rather than buried.
 
 | Decision | Why |
 | --- | --- |
-| **Total default desktop width is 1504, not 1600** | 1600 was 1440 + 2×80. Padding is now 32, so it derives to 1504. `.l-container` computes it from `--grid-pad-desktop`; it is never hardcoded. **Any redline still saying 1600 is stale.** |
+| **1440 is the default; the 1600 on the Grid page is stale** | 1600 was 1440 + 2×80 — the old padding. With 32px the equivalent total is 1504, but that number is derived and deliberately **not** headlined: 1440 is the default content width and padding sits outside it. **Any redline still saying 1600 is stale.** |
 | **Desktop starts at 961, not 960** | The spec table says "Desktop 960–1920", but the 960px artboards in *both* files are drawn with the 16px mobile padding. The artboards win. |
 | **`padding DT 1027` is the authoritative 1024 study** | It draws 1024 → 960 / 780, exactly what the formula produces at 32px. The `padding DT 1024` frame beside it (80px → 864 / 702) is the superseded option. |
 | **CTA crop uses `scale(1.45) translateX(-15%)`** | Figma positions the subject with `-38.07% / -71.54%` at `138.87% / 298.54%`. Those are pinned to the 1920 × 500 frame and break at every other aspect ratio. |
@@ -212,7 +217,7 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 | `.grid-page` | Page shell; caps at max supported width and centres |
 | `.grid-band` | Full-bleed horizontal band; backgrounds live here |
 | `.l-full` | Full width content, edge to edge |
-| `.l-container` | Total default desktop width — padded shell for page chrome |
+| `.l-container` | Padded shell — same 1440 rail, padding inside the box so a background spans the band |
 | `.l-max` | Max pattern width — the default content width |
 | `.l-min` | Min pattern width |
 | `.grid-overlay` | Debug: draws the rails over the live page |
@@ -271,6 +276,6 @@ In rough priority order:
 3. **Run a screen reader pass.** The a11y work here is measured for contrast and
    reasoned for structure, but never driven by an actual AT.
 4. **Load Acumin** and pull the CTA text column back toward Figma's 346px.
-5. **Decide whether `.l-container` at 1504 is right**, or whether the 1600 in
-   the Figma file was an intent that should survive the padding change. The code
-   derives it; if 1600 is wanted, that's a deliberate decoupling, not a default.
+5. **Update the Figma Grid page**, which still writes 1600 as the total default
+   desktop width. That was 1440 + 2×80 and no longer matches the 32px padding.
+   The code doesn't depend on it, but the file will keep misleading readers.
