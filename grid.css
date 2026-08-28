@@ -205,11 +205,6 @@
   .l-min {
     width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
   }
-
-  /* No separate min band to draw in the overlay either. */
-  .grid-overlay::after {
-    background: color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent);
-  }
 }
 
 /* Below the breakpoint everything collapses to a single fluid column unless a
@@ -278,4 +273,16 @@
     color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent)
       calc(100% - var(--_min-inset)) 100%
   );
+}
+
+/* Below the breakpoint .l-min resolves to .l-max, so there is no separate min
+   band to draw — the max rail becomes a flat fill.
+
+   This block has to come AFTER the rule above. A media query adds nothing to
+   specificity, so declaring it earlier in the file loses to the base rule and
+   the min band keeps painting on mobile. */
+@media (max-width: 960px) {
+  .grid-overlay::after {
+    background: color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent);
+  }
 }
