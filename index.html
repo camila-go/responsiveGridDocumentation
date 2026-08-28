@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Grid Documentation</title>
+<title>Grid Prototype</title>
 <link rel="stylesheet" href="grid.css">
 <style>
   :root {
@@ -66,7 +66,8 @@
   }
   .hud button[aria-pressed="true"] { background: #fff; color: var(--ink); border-color: #fff; }
 
-  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  section { padding: 56px 0; }
+  section + section { border-top: 1px solid var(--line); }
   .stack { display: flex; flex-direction: column; gap: 20px; }
 
   /* ---- rail diagram ----
@@ -271,7 +272,7 @@
   <section class="grid-band">
     <div class="l-max stack">
       <p class="eyebrow">Responsive document</p>
-      <h1>Grid Documentation</h1>
+      <h1>Grid Prototype</h1>
       <p>One breakpoint at 960px, fixed padding either side of it (32 desktop, 16 mobile), and two
         content widths that scale with the browser until they cap. Resize the window — the rail
         diagram below reports its own live widths.</p>
@@ -282,8 +283,6 @@
   <section class="grid-band">
     <div class="l-max stack" style="margin-bottom:20px">
       <h2>The rails</h2>
-      <p>Outer band is the page (capped at max supported width). Inside it, the padded shell, then
-        the default content width and the narrow content width.</p>
     </div>
     <div class="diagram" id="diagram">
       <div class="rail rail-container" aria-hidden="true"></div>
@@ -306,7 +305,7 @@
   </section>
 
   <!-- ---------------------------------------------------------------- -->
-  <section class="grid-band">
+  <section class="grid-band" hidden>
     <div class="l-max stack">
       <h2>Content widths</h2>
       <p>Three classes, applied to content sitting directly inside a full-width band.</p>
@@ -330,7 +329,7 @@
   </section>
 
   <!-- ---------------------------------------------------------------- -->
-  <section class="grid-band">
+  <section class="grid-band" hidden>
     <div class="l-max stack" style="margin-bottom:20px">
       <h2>Flex grid</h2>
       <p>Columns are nominal, not structural. <code>--cols</code> sets how many items sit on a row at full
@@ -375,7 +374,7 @@
   </section>
 
   <!-- ---------------------------------------------------------------- -->
-  <section class="grid-band">
+  <section class="grid-band" hidden>
     <div class="l-max stack" style="margin-bottom:8px">
       <h2>How a component responds</h2>
       <p>The CTA below is one block of markup with no viewport media queries. It sizes off
@@ -419,7 +418,7 @@
   </section>
 
   <!-- ---------------------------------------------------------------- -->
-  <section class="grid-band" style="border-bottom:0">
+  <section class="grid-band" hidden>
     <div class="l-max stack">
       <h2>Reference</h2>
       <div class="table-wrap">
@@ -511,6 +510,7 @@
       const target = +sc.dataset.w;
       const view = sc.querySelector('.scope__view');
       const page = sc.querySelector('.scope__page');
+      if (!view.clientWidth) return;   // hidden section — nothing to fit
       const s = Math.min(1, view.clientWidth / target);
       page.style.setProperty('--s', s);
       // scrollHeight is the pre-transform layout height, which is what we scale.

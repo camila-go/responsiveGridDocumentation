@@ -43,6 +43,13 @@ from Responsive layout 2.0. It is committed to this repo.
 | Cross-browser | **Not done.** Only exercised in the preview pane's Chromium |
 | Real device testing | **Not done.** All responsive checks were emulated viewports |
 
+**Four sections of the page are currently hidden**, not deleted: Content
+widths, Flex grid, How a component responds, and Reference. They carry a
+`hidden` attribute on their `<section>` — remove it to bring one back. The page
+is presenting as a prototype of the grid itself, so it shows only the hero and
+the rail diagram. Everything documented below still exists in the file and
+still works; you just won't see it on screen.
+
 Nothing is uncommitted. Everything described here is on `origin/main`.
 
 ---
