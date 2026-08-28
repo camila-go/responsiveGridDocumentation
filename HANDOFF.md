@@ -103,9 +103,12 @@ Verified output — every row matches a measured rectangle in the source files:
 | 1440 | 32 | 1376 | 1118 |
 | 1024 | 32 | 960 | 780 |
 | 961 | 32 | 897 | 729 |
-| 960 | 16 | 928 | 754 |
-| 753 | 16 | 721 | 585 |
-| 375 | 16 | 343 | 279 |
+| 960 | 16 | 928 | — |
+| 753 | 16 | 721 | — |
+| 375 | 16 | 343 | — |
+
+Below the breakpoint `.l-min` resolves to `.l-max`, so there is no separate
+narrow width on mobile.
 
 ---
 
@@ -121,6 +124,7 @@ listed with the reasoning rather than buried.
 | **Desktop starts at 961, not 960** | The spec table says "Desktop 960–1920", but the 960px artboards in *both* files are drawn with the 16px mobile padding. The artboards win. |
 | **`padding DT 1027` is the authoritative 1024 study** | It draws 1024 → 960 / 780, exactly what the formula produces at 32px. The `padding DT 1024` frame beside it (80px → 864 / 702) is the superseded option. |
 | **CTA crop uses `scale(1.45) translateX(-15%)`** | Figma positions the subject with `-38.07% / -71.54%` at `138.87% / 298.54%`. Those are pinned to the 1920 × 500 frame and break at every other aspect ratio. |
+| **`.l-min` does not apply below 960** | At 375 the narrow width would be a 279px column inside 343px of space — 32px of dead gutter each side on top of the page padding. Below the breakpoint `.l-min` resolves to `.l-max`, and the overlay stops drawing a separate min band. The `usage M` frame in the Grid page *does* draw a 754px narrow band at 960, so this is a product decision, not a reading of the file. |
 | **CTA scrim has a flat 0.18 floor added** | The design's radial alone measured 3.96:1 behind the 16px copy. See Accessibility. |
 | **Text column is 468px, not Figma's 346px** | Acumin Extra Condensed isn't loaded; the fallback condensed faces are wider and the headline wrapped. Point `--font-display` at the real Typekit face and this can come back down. |
 
@@ -276,7 +280,7 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 | `.l-full` | Full width content, edge to edge |
 | `.l-container` | Padded shell — same 1440 rail, padding inside the box so a background spans the band |
 | `.l-max` | Max pattern width — the default content width |
-| `.l-min` | Min pattern width |
+| `.l-min` | Narrow content width — desktop only; resolves to `.l-max` below 960 |
 | `.grid-overlay` | Debug: draws the rails over the live page |
 
 **Flex grid**

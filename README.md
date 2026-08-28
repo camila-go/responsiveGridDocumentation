@@ -23,7 +23,7 @@ spec page, [`cta.jpg`](cta.jpg) is the CTA photograph exported from Figma
 | Mobile padding | **16px** fixed |
 | Desktop padding | **32px** fixed |
 | **Default content width** | **1440px** — Figma's "Max Pattern Width". A cap, not a floor |
-| Narrow content width | **1170px** — Figma's "Min Pattern Width" |
+| Narrow content width | **1170px** — Figma's "Min Pattern Width". Desktop only |
 | Max supported width | **1920px** |
 
 Between the breakpoint and the cap nothing steps — the pattern widths scale with
@@ -44,9 +44,15 @@ That single pair reproduces **every** measured rectangle in both files:
 | 1440 | 32 | 1376 | 1118 | — cap not yet reached |
 | 1024 | 32 | 960 | 780 | `padding DT 1027` |
 | 961 | 32 | 897 | 729 | ">961 – just before small breakpoint" |
-| 960 | 16 | 928 | 754 | `padding M 960`, `usage M` |
-| 753 | 16 | 721 | 585 | "<961 – after mobile breakpoint" |
-| 375 | 16 | 343 | 279 | `padding M 375` |
+| 960 | 16 | 928 | — | `padding M 960`, `usage M` |
+| 753 | 16 | 721 | — | "<961 – after mobile breakpoint" |
+| 375 | 16 | 343 | — | `padding M 375` |
+
+Below the 960 breakpoint the narrow width does not apply: `.l-min` resolves to
+`.l-max`. At 375 it would otherwise be a 279px column inside 343px of space —
+32px of dead gutter either side, on top of the page padding. This departs from
+the `usage M` frame, which does draw a 754px narrow band at 960; it's a product
+decision, not a reading of the file.
 
 Verified in-browser against every row.
 
@@ -87,7 +93,7 @@ directly inside a full-width band.
 | Class | Content width at ≥1504px |
 |---|---|
 | `.l-max` | **1440 — the default.** Reach for this first |
-| `.l-min` | 1170 — narrow content width |
+| `.l-min` | 1170 — narrow content width. **Desktop only**; below 960 it resolves to `.l-max` |
 | `.l-full` | full width content, edge to edge |
 | `.l-container` | 1440, but with the padding *inside* the box, so a background or border spans the whole band. For page chrome — header, footer, nav. Its outer width is 1440 + 2×padding |
 
@@ -146,8 +152,8 @@ The spec page demonstrates this two ways:
    that is 1216px → overlay at 500px, 988px → overlay at 440px, and a ~389px
    grid cell → stacked.
 
-The 960px breakpoint stays a viewport concern (it switches page padding). Every
-component-level change is container-driven.
+The 960px breakpoint stays a viewport concern — it switches page padding and
+retires `.l-min`. Every component-level change is container-driven.
 
 Two deliberate departures from the Figma file, both because its values are tied
 to one specific 1920 × 500 frame:

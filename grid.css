@@ -34,9 +34,12 @@
      1504    32   1440               1170
      1024    32    960                780   <- Figma "padding DT 1027"
       961    32    897                729
-      960    16    928                754   <- Figma "padding M 960"
-      753    16    721                585
-      375    16    343                279   <- Figma "padding M 375"
+      960    16    928                  -   <- Figma "padding M 960"
+      753    16    721                  -
+      375    16    343                  -   <- Figma "padding M 375"
+
+   Below the 960 breakpoint the narrow width does not apply — .l-min resolves
+   to .l-max there.
    ========================================================================== */
 
 :root {
@@ -117,7 +120,9 @@
 }
 
 /* The narrow content width. Caps at 1170, and is 81.25% of the default
-   content width at every viewport below the cap. */
+   content width at every viewport below the cap — on desktop only. Below the
+   960 breakpoint it resolves to the same width as .l-max; see the media query
+   further down. */
 .l-min {
   width: max(0px, min(
     (100% - 2 * var(--grid-pad)) * var(--grid-pattern-ratio),
@@ -187,6 +192,25 @@
 .flex-grid.cols-4 { --cols: 4; }
 .flex-grid.cols-6 { --cols: 6; }
 .flex-grid.cols-12 { --cols: 12; }
+
+/* The narrow content width does not apply on mobile. At 375 it would be a
+   279px column inside 343px of available space — 32px of dead gutter either
+   side, on top of the page padding. Below the breakpoint .l-min resolves to
+   .l-max, so the two are interchangeable there and any component written
+   against .l-min still fills the width it is given.
+
+   This departs from the "usage M" frame in the Grid page, which does draw a
+   754px narrow band at 960. Product decision, not a reading of the file. */
+@media (max-width: 960px) {
+  .l-min {
+    width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
+  }
+
+  /* No separate min band to draw in the overlay either. */
+  .grid-overlay::after {
+    background: color-mix(in srgb, var(--grid-rail-max) var(--grid-rail-alpha), transparent);
+  }
+}
 
 /* Below the breakpoint everything collapses to a single fluid column unless a
    grid opts out with .flex-grid--keep. */

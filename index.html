@@ -68,6 +68,10 @@
 
   section { padding: 56px 0; }
   section + section { border-top: 1px solid var(--line); }
+  /* The eyebrow labels the h1, so it belongs tight against it. The uniform
+     stack gap made it read as a separate element floating above the title. */
+  .stack.hero { gap: 8px; }
+  .stack.hero > p:last-child { margin-top: 10px; }
   .stack { display: flex; flex-direction: column; gap: 20px; }
 
   /* ---- rail diagram ----
@@ -112,6 +116,9 @@
     background: var(--rail-min);
   }
   .diagram .label-page { position: absolute; top: 8px; left: 8px; z-index: 5; }
+  /* Below the breakpoint .l-min resolves to .l-max, so there is no separate
+     band to draw. Hides the rail and its label chip together. */
+  @media (max-width: 960px) { .diagram .rail-min { display: none; } }
 
   /* ---- demo blocks ---- */
   .demo { background: var(--swatch); border: 1px solid var(--swatch-line); border-radius: var(--swatch-radius); padding: 16px; }
@@ -270,7 +277,7 @@
 
   <!-- ---------------------------------------------------------------- -->
   <section class="grid-band">
-    <div class="l-max stack">
+    <div class="l-max stack hero">
       <p class="eyebrow">Responsive document</p>
       <h1>Grid Prototype</h1>
       <p>One breakpoint at 960px, fixed padding either side of it (32 desktop, 16 mobile), and two
@@ -431,8 +438,8 @@
           <tr><td>1440</td><td>32</td><td>1376</td><td>1118</td></tr>
           <tr><td>1024</td><td>32</td><td>960</td><td>780</td></tr>
           <tr><td>961</td><td>32</td><td>897</td><td>729</td></tr>
-          <tr><td>960</td><td>16</td><td>928</td><td>754</td></tr>
-          <tr><td>375</td><td>16</td><td>343</td><td>279</td></tr>
+          <tr><td>960</td><td>16</td><td>928</td><td>928 <em>— n/a below breakpoint</em></td></tr>
+          <tr><td>375</td><td>16</td><td>343</td><td>343 <em>— n/a below breakpoint</em></td></tr>
         </tbody>
       </table>
       </div>
