@@ -8,11 +8,11 @@
    The two files agree on one rule set:
 
      single breakpoint          960px  (<=960 mobile, >=961 desktop)
-     mobile padding             16px   (fixed)
-     desktop padding            32px   (fixed)
-     default content width      1440px ("Max Pattern Width" — a cap, never
-                                        a floor)
-     narrow content width       1170px ("Min Pattern Width")
+     mobile margin              16px   (fixed)
+     desktop margin             32px   (fixed)
+     wide content width         1440px ("Max Pattern Width" in Figma — a cap,
+                                        never a floor)
+     small content width        1170px ("Min Pattern Width" in Figma)
      max supported width        1920px
 
    1440 is THE default. Padding sits outside that band, not inside it, so the
@@ -38,7 +38,7 @@
       753    16    721                  -
       375    16    343                  -   <- Figma "padding M 375"
 
-   Below the 960 breakpoint the narrow width does not apply — .l-min resolves
+   Below the 960 breakpoint the small width does not apply — .l-min resolves
    to .l-max there.
    ========================================================================== */
 
@@ -111,16 +111,16 @@
   padding-inline: var(--grid-pad);
 }
 
-/* THE DEFAULT. Content width, capped at 1440 — reached once the viewport is
+/* THE DEFAULT — the wide content width. Capped at 1440, reached once the viewport is
    1504 (1440 + 2 x 32) or wider; fluid below that.
-   max(0px, ...) so a page narrower than the padding can't compute negative. */
+   max(0px, ...) so a page narrower than the margin can't compute negative. */
 .l-max {
   width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
   margin-inline: auto;
 }
 
-/* The narrow content width. Caps at 1170, and is 81.25% of the default
-   content width at every viewport below the cap — on desktop only. Below the
+/* The small content width. Caps at 1170, and is 81.25% of the wide content
+   width at every viewport below the cap — on desktop only. Below the
    960 breakpoint it resolves to the same width as .l-max; see the media query
    further down. */
 .l-min {
@@ -193,14 +193,14 @@
 .flex-grid.cols-6 { --cols: 6; }
 .flex-grid.cols-12 { --cols: 12; }
 
-/* The narrow content width does not apply on mobile. At 375 it would be a
+/* The small content width does not apply on mobile. At 375 it would be a
    279px column inside 343px of available space — 32px of dead gutter either
    side, on top of the page padding. Below the breakpoint .l-min resolves to
    .l-max, so the two are interchangeable there and any component written
    against .l-min still fills the width it is given.
 
    This departs from the "usage M" frame in the Grid page, which does draw a
-   754px narrow band at 960. Product decision, not a reading of the file. */
+   754px small band at 960. Product decision, not a reading of the file. */
 @media (max-width: 960px) {
   .l-min {
     width: max(0px, min(100% - 2 * var(--grid-pad), var(--grid-pattern-max)));
@@ -226,8 +226,8 @@
    Colours are the Figma fills, straight off the "Grid" page:
      outside the container   #000000
      desktop / mobile padding  #ffe0ae
-     max pattern width       #aef3ff
-     min pattern width       #edaeff
+     wide pattern width      #aef3ff
+     small pattern width     #edaeff
    ========================================================================== */
 
 :root {

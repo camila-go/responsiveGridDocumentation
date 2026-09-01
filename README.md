@@ -20,10 +20,10 @@ spec page, [`cta.jpg`](cta.jpg) is the CTA photograph exported from Figma
 | | |
 |---|---|
 | Single breakpoint | **960px** — mobile ≤ 960, desktop ≥ 961 |
-| Mobile padding | **16px** fixed |
-| Desktop padding | **32px** fixed |
-| **Default content width** | **1440px** — Figma's "Max Pattern Width". A cap, not a floor |
-| Narrow content width | **1170px** — Figma's "Min Pattern Width". Desktop only |
+| Mobile margin | **16px** fixed |
+| Desktop margin | **32px** fixed |
+| **Wide content width** | **1440px** — the default. A cap, not a floor |
+| Small content width | **1170px** — desktop only |
 | Max supported width | **1920px** |
 
 Between the breakpoint and the cap nothing steps — the pattern widths scale with
@@ -31,13 +31,13 @@ the browser ("Scales w/o breakpoint RELATIVE TO BROWSER WIDTH"). The quoted
 numbers are that scale evaluated at 1920px:
 
 ```
-pattern-max = min(page − 2 × padding, 1440)
+pattern-max = min(page − 2 × margin, 1440)
 pattern-min = pattern-max × 0.8125          # 1170 / 1440 = 0.8125
 ```
 
 That single pair reproduces **every** measured rectangle in both files:
 
-| page | padding | content (`.l-max`) | narrow (`.l-min`) | drawn in Figma as |
+| page | margin | wide (`.l-max`) | small (`.l-min`) | drawn in Figma as |
 |---|---|---|---|---|
 | 1920 | 32 | 1440 | 1170 | max supported width |
 | 1504 | 32 | 1440 | 1170 | first width where content hits its cap |
@@ -48,22 +48,38 @@ That single pair reproduces **every** measured rectangle in both files:
 | 753 | 16 | 721 | — | "<961 – after mobile breakpoint" |
 | 375 | 16 | 343 | — | `padding M 375` |
 
-Below the 960 breakpoint the narrow width does not apply: `.l-min` resolves to
+Below the 960 breakpoint the small width does not apply: `.l-min` resolves to
 `.l-max`. At 375 it would otherwise be a 279px column inside 343px of space —
-32px of dead gutter either side, on top of the page padding. This departs from
-the `usage M` frame, which does draw a 754px narrow band at 960; it's a product
+32px of dead gutter either side, on top of the page margin. This departs from
+the `usage M` frame, which does draw a 754px small band at 960; it's a product
 decision, not a reading of the file.
 
 Verified in-browser against every row.
 
+### Naming
+
+The prototype and these docs say **wide** and **small**. Figma and the code
+identifiers still say max and min, so the mapping is:
+
+| Here | Figma label | Code |
+|---|---|---|
+| wide content width | "Max Pattern Width" | `.l-max`, `--grid-pattern-max` |
+| small content width | "Min Pattern Width" | `.l-min`, `--grid-pattern-min` |
+| page margin | "Desktop/Mobile padding" | `--grid-pad-desktop`, `--grid-pad-mobile` |
+
+The class and token names were left alone deliberately — renaming them is a
+breaking change to anything already built against the grid, and the Figma
+labels are what let you trace a number back to the file. Worth doing as one
+deliberate pass if wide/small becomes the house term everywhere.
+
 ### On the 32px decision
 
-Padding is 32 on desktop, 16 on mobile. Two consequences worth knowing:
+The margin is 32 on desktop, 16 on mobile. Two consequences worth knowing:
 
 - It makes the **`padding DT 1027`** frame in the Grid page the authoritative
   1024px study — it draws 1024 → 960 / 780, exactly what the formula produces.
   The `padding DT 1024` frame beside it (80px → 864 / 702) is superseded.
-- **1440 is the default content width, and padding sits outside it.** Content
+- **1440 is the wide content width and the default, and the margin sits outside it.** Content
   reaches its 1440 cap once the viewport is 1504 (1440 + 2×32) or wider. 1504
   is a consequence of `--grid-pad-desktop`, not a design number — don't
   hardcode it and don't quote it as "the default width". The 1600 on the Grid
@@ -76,10 +92,10 @@ Padding is 32 on desktop, 16 on mobile. Two consequences worth knowing:
 
 <div class="grid-page">
   <section class="grid-band">          <!-- full-bleed band, background lives here -->
-    <div class="l-max">…</div>          <!-- the default content width -->
+    <div class="l-max">…</div>          <!-- wide: the default content width -->
   </section>
   <section class="grid-band">
-    <div class="l-min">…</div>          <!-- narrow content width -->
+    <div class="l-min">…</div>          <!-- small content width -->
   </section>
   <section class="grid-band">
     <div class="l-full">…</div>         <!-- full width content, edge to edge -->
@@ -92,10 +108,10 @@ directly inside a full-width band.
 
 | Class | Content width at ≥1504px |
 |---|---|
-| `.l-max` | **1440 — the default.** Reach for this first |
-| `.l-min` | 1170 — narrow content width. **Desktop only**; below 960 it resolves to `.l-max` |
+| `.l-max` | **1440 — wide, the default.** Reach for this first |
+| `.l-min` | 1170 — small content width. **Desktop only**; below 960 it resolves to `.l-max` |
 | `.l-full` | full width content, edge to edge |
-| `.l-container` | 1440, but with the padding *inside* the box, so a background or border spans the whole band. For page chrome — header, footer, nav. Its outer width is 1440 + 2×padding |
+| `.l-container` | 1440, but with the margin *inside* the box, so a background or border spans the whole band. For page chrome — header, footer, nav. Its outer width is 1440 + 2×margin |
 
 ### Flex grid
 
@@ -184,8 +200,8 @@ Grid and annotation colours are taken from the Figma "Grid" page, not invented:
 |---|---|---|
 | `--grid-fill-outside` | `#000000` | outside the container |
 | `--grid-fill-margin` | `#ffe0ae` | page margin |
-| `--grid-fill-max` | `#aef3ff` | max pattern width |
-| `--grid-fill-min` | `#edaeff` | min pattern width |
+| `--grid-fill-max` | `#aef3ff` | wide pattern width |
+| `--grid-fill-min` | `#edaeff` | small pattern width |
 
 The spec page chrome uses the source tokens: `careerblue-500 #253746`,
 `careerblue-200 #a8afb5`, `gl-neutral-600 #383838` (the annotation grey),

@@ -319,11 +319,11 @@
     </div>
 
     <div class="l-max demo" style="margin-top:12px">
-      <div class="card"><b>.l-max</b><span>the default content width — caps at 1440</span></div>
+      <div class="card"><b>.l-max</b><span>the wide content width, and the default — caps at 1440</span></div>
     </div>
 
     <div class="l-min demo" style="margin-top:12px">
-      <div class="card"><b>.l-min</b><span>the narrow content width — 81.25% of the default</span></div>
+      <div class="card"><b>.l-min</b><span>the small content width — 81.25% of the wide</span></div>
     </div>
 
     <div class="l-container demo" style="margin-top:12px">
@@ -427,7 +427,7 @@
       <div class="table-wrap">
       <table>
         <caption>Computed widths at each measured breakpoint, in px.</caption>
-        <thead><tr><th scope="col">Browser width</th><th scope="col">Padding</th><th scope="col">Content (.l-max)</th><th scope="col">Narrow (.l-min)</th></tr></thead>
+        <thead><tr><th scope="col">Browser width</th><th scope="col">Margin</th><th scope="col">Wide (.l-max)</th><th scope="col">Small (.l-min)</th></tr></thead>
         <tbody>
           <tr><td>1920</td><td>32</td><td>1440</td><td>1170</td></tr>
           <tr><td>1504</td><td>32</td><td>1440</td><td>1170</td></tr>
@@ -439,7 +439,7 @@
         </tbody>
       </table>
       </div>
-      <p class="note"><strong>Padding is 32px on desktop, 16px on mobile.</strong> That makes the
+      <p class="note"><strong>The margin is 32px on desktop, 16px on mobile.</strong> That makes the
         <code>padding DT 1027</code> study in the Grid page the authoritative one — it draws 1024 &rarr;
         960 / 780, which is exactly what the formula produces. The <code>padding DT 1024</code> frame
         next to it (80px) is the superseded option.</p>

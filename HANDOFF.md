@@ -81,13 +81,13 @@ Accessibility, which reads image pixels back off a canvas.
 Everything in the width system falls out of two lines:
 
 ```
-pattern-max = min(page − 2 × padding, 1440)
+pattern-max = min(page − 2 × margin, 1440)
 pattern-min = pattern-max × 0.8125        # 1170 / 1440
 ```
 
-**1440 is the default content width**, and the margin sits outside that width
-rather than inside it — so content reaches 1440 once the viewport is 1504
-(1440 + 2×32) or wider. 1504 is a consequence of the padding token, not a
+**1440 is the wide content width and the default**, and the margin sits outside
+it rather than inside — so content reaches 1440 once the viewport is 1504
+(1440 + 2×32) or wider. 1504 is a consequence of the margin token, not a
 design number: never hardcode it, and never quote it as "the default width".
 
 The numbers written on the Figma Grid page (1440, 1170, 1600) are **that
@@ -96,7 +96,7 @@ fixed values is the single most likely way to break this.
 
 Verified output — every row matches a measured rectangle in the source files:
 
-| page | padding | content (`.l-max`) | narrow (`.l-min`) |
+| page | margin | wide (`.l-max`) | small (`.l-min`) |
 | --- | --- | --- | --- |
 | 1920 | 32 | 1440 | 1170 |
 | 1504 | 32 | 1440 | 1170 |
@@ -108,7 +108,23 @@ Verified output — every row matches a measured rectangle in the source files:
 | 375 | 16 | 343 | — |
 
 Below the breakpoint `.l-min` resolves to `.l-max`, so there is no separate
-narrow width on mobile.
+small width on mobile.
+
+### Naming
+
+The prototype and the docs say **wide**, **small** and **margin**. Figma and the
+code identifiers still say max, min and padding:
+
+| Here | Figma label | Code |
+| --- | --- | --- |
+| wide content width | "Max Pattern Width" | `.l-max`, `--grid-pattern-max` |
+| small content width | "Min Pattern Width" | `.l-min`, `--grid-pattern-min` |
+| page margin | "Desktop/Mobile padding" | `--grid-pad-desktop`, `--grid-pad-mobile` |
+
+Identifiers were left alone on purpose: renaming them breaks anything already
+built against the grid, and the Figma labels are what let you trace a number
+back to the file. If wide/small/margin becomes the house term everywhere, do
+the rename as one deliberate pass rather than drifting into it.
 
 ---
 
@@ -120,11 +136,11 @@ listed with the reasoning rather than buried.
 
 | Decision | Why |
 | --- | --- |
-| **1440 is the default; the 1600 on the Grid page is stale** | 1600 was 1440 + 2×80 — the old padding. With 32px the equivalent total is 1504, but that number is derived and deliberately **not** headlined: 1440 is the default content width and padding sits outside it. **Any redline still saying 1600 is stale.** |
-| **Desktop starts at 961, not 960** | The spec table says "Desktop 960–1920", but the 960px artboards in *both* files are drawn with the 16px mobile padding. The artboards win. |
+| **1440 is the default; the 1600 on the Grid page is stale** | 1600 was 1440 + 2×80 — the old margin. With 32px the equivalent total is 1504, but that number is derived and deliberately **not** headlined: 1440 is the wide content width and the margin sits outside it. **Any redline still saying 1600 is stale.** |
+| **Desktop starts at 961, not 960** | The spec table says "Desktop 960–1920", but the 960px artboards in *both* files are drawn with the 16px mobile margin. The artboards win. |
 | **`padding DT 1027` is the authoritative 1024 study** | It draws 1024 → 960 / 780, exactly what the formula produces at 32px. The `padding DT 1024` frame beside it (80px → 864 / 702) is the superseded option. |
 | **CTA crop uses `scale(1.45) translateX(-15%)`** | Figma positions the subject with `-38.07% / -71.54%` at `138.87% / 298.54%`. Those are pinned to the 1920 × 500 frame and break at every other aspect ratio. |
-| **`.l-min` does not apply below 960** | At 375 the narrow width would be a 279px column inside 343px of space — 32px of dead gutter each side on top of the page padding. Below the breakpoint `.l-min` resolves to `.l-max`, and the overlay stops drawing a separate min band. The `usage M` frame in the Grid page *does* draw a 754px narrow band at 960, so this is a product decision, not a reading of the file. |
+| **`.l-min` does not apply below 960** | At 375 the small width would be a 279px column inside 343px of space — 32px of dead gutter each side on top of the page margin. Below the breakpoint `.l-min` resolves to `.l-max`, and the overlay stops drawing a separate small band. The `usage M` frame in the Grid page *does* draw a 754px small band at 960, so this is a product decision, not a reading of the file. |
 | **CTA scrim has a flat 0.18 floor added** | The design's radial alone measured 3.96:1 behind the 16px copy. See Accessibility. |
 | **Text column is 468px, not Figma's 346px** | Acumin Extra Condensed isn't loaded; the fallback condensed faces are wider and the headline wrapped. Point `--font-display` at the real Typekit face and this can come back down. |
 
@@ -137,9 +153,9 @@ Do not treat these as decided. Nothing in either Figma file specifies them.
 | Thing | Current value | Notes |
 | --- | --- | --- |
 | Gutter | `--grid-gutter: 24px` | 3 × the system's 8px base unit. Pure inference. |
-| Column count | none — `--cols` per grid | The Grid page defines widths and padding only; there is no 12-column system in the file. |
+| Column count | none — `--cols` per grid | The Grid page defines widths and margins only; there is no 12-column system in the file. |
 | Container-query tiers | 480 / 860 / 1200 | Chosen to match where the CTA visibly rearranges across the artboards. Per-component, **not** system tokens. |
-| Stacked CTA layout | portrait crop over a light panel | Inferred from the narrow column in Responsive layout 2.0. The text nodes there sit outside the CTA frame, so the exact composition is not pinned down. |
+| Stacked CTA layout | portrait crop over a light panel | Inferred from the narrowest column in Responsive layout 2.0. The text nodes there sit outside the CTA frame, so the exact composition is not pinned down. |
 
 ---
 
@@ -279,8 +295,8 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 | `.grid-band` | Full-bleed horizontal band; backgrounds live here |
 | `.l-full` | Full width content, edge to edge |
 | `.l-container` | Padded shell — same 1440 width, margin inside the box so a background spans the band |
-| `.l-max` | Max pattern width — the default content width |
-| `.l-min` | Narrow content width — desktop only; resolves to `.l-max` below 960 |
+| `.l-max` | Wide content width — the default |
+| `.l-min` | Small content width — desktop only; resolves to `.l-max` below 960 |
 | `.grid-overlay` | Debug: draws the grid over the live page |
 
 **Flex grid**
@@ -297,8 +313,8 @@ Everything in `grid.css`. No build step, no preprocessor, no dependencies.
 
 ```
 --grid-max-supported   1920px
---grid-pattern-max     1440px      cap, not a floor
---grid-pattern-min     1170px
+--grid-pattern-max     1440px      wide content width; a cap, not a floor
+--grid-pattern-min     1170px      small content width
 --grid-pattern-ratio   0.8125
 --grid-pad-mobile      16px
 --grid-pad-desktop     32px
